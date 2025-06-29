@@ -1,10 +1,14 @@
-export { MorsePixelGrid } from './MorsePixelGrid'
-export type { MorsePixelGridProps, ColorScheme, AnimationPreset } from './MorsePixelGrid'
-export { MorsePixelGridOptimized } from './MorsePixelGridOptimized'
-export type { MorsePixelGridOptimizedProps } from './MorsePixelGridOptimized'
-export { Pixel } from './Pixel'
-export type { PixelProps } from './Pixel'
-export { PixelOptimized } from './PixelOptimized'
-export type { PixelOptimizedProps } from './PixelOptimized'
-export { SequenceEngine } from './SequenceEngine'
-export type { SequenceEngineConfig } from './SequenceEngine'
+export { MorsePixelGrid } from "./MorsePixelGrid";
+export type {
+  MorsePixelGridProps,
+  ColorScheme,
+  AnimationPreset,
+} from "./MorsePixelGrid";
+export { MorsePixelGridOptimized } from "./MorsePixelGridOptimized";
+export type { MorsePixelGridOptimizedProps } from "./MorsePixelGridOptimized";
+export { Pixel } from "./Pixel";
+export type { PixelProps } from "./Pixel";
+export { PixelOptimized } from "./PixelOptimized";
+export type { PixelOptimizedProps } from "./PixelOptimized";
+export { SequenceEngine } from "./SequenceEngine";
+export type { SequenceEngineConfig } from "./SequenceEngine";

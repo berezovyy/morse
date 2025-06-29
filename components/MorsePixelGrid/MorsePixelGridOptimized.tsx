@@ -75,68 +75,78 @@ const Pixel = React.memo<{
   iterations: number | "infinite";
   colorScheme?: ColorScheme;
   showGrid: boolean;
-}>(({
-  row,
-  col,
-  size,
-  interactive,
-  active,
-  animationDelay,
-  animationName,
-  animationDuration,
-  iterations,
-  colorScheme,
-  showGrid,
-}) => {
-  const pixelRef = useRef<HTMLDivElement>(null);
-  
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    if (!interactive || active) return;
-    e.stopPropagation();
-    
-    const pixel = pixelRef.current;
-    if (!pixel) return;
-    
-    const currentState = pixel.dataset.state === '1';
-    pixel.dataset.state = currentState ? '0' : '1';
-    pixel.style.backgroundColor = currentState 
-      ? (showGrid ? (colorScheme?.grid || colorScheme?.inactive || '#e5e5e5') : (colorScheme?.inactive || 'transparent'))
-      : (colorScheme?.active || 'currentColor');
-  }, [interactive, active, colorScheme, showGrid]);
+}>(
+  ({
+    row,
+    col,
+    size,
+    interactive,
+    active,
+    animationDelay,
+    animationName,
+    animationDuration,
+    iterations,
+    colorScheme,
+    showGrid,
+  }) => {
+    const pixelRef = useRef<HTMLDivElement>(null);
 
-  return (
-    <div
-      ref={pixelRef}
-      className={cn(
-        "morse-pixel rounded-sm transition-colors",
-        size,
-        interactive && !active && "cursor-pointer hover:opacity-80"
-      )}
-      data-row={row}
-      data-col={col}
-      data-state="0"
-      style={{
-        backgroundColor: showGrid 
-          ? (colorScheme?.grid || colorScheme?.inactive || '#e5e5e5')
-          : (colorScheme?.inactive || 'transparent'),
-        animationName: active ? animationName : 'none',
-        animationDuration: `${animationDuration}ms`,
-        animationDelay: `${animationDelay}ms`,
-        animationIterationCount: iterations === 'infinite' ? 'infinite' : iterations,
-        animationTimingFunction: 'steps(1, end)',
-        animationFillMode: 'forwards',
-      }}
-      onClick={handleClick}
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive && !active ? 0 : undefined}
-      aria-label={`Pixel at row ${row + 1}, column ${col + 1}`}
-    />
-  );
-});
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        if (!interactive || active) return;
+        e.stopPropagation();
 
-Pixel.displayName = 'Pixel';
+        const pixel = pixelRef.current;
+        if (!pixel) return;
 
-export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = ({
+        const currentState = pixel.dataset.state === "1";
+        pixel.dataset.state = currentState ? "0" : "1";
+        pixel.style.backgroundColor = currentState
+          ? showGrid
+            ? colorScheme?.grid || colorScheme?.inactive || "#e5e5e5"
+            : colorScheme?.inactive || "transparent"
+          : colorScheme?.active || "currentColor";
+      },
+      [interactive, active, colorScheme, showGrid]
+    );
+
+    return (
+      <div
+        ref={pixelRef}
+        className={cn(
+          "morse-pixel rounded-sm transition-colors",
+          size,
+          interactive && !active && "cursor-pointer hover:opacity-80"
+        )}
+        data-row={row}
+        data-col={col}
+        data-state="0"
+        style={{
+          backgroundColor: showGrid
+            ? colorScheme?.grid || colorScheme?.inactive || "#e5e5e5"
+            : colorScheme?.inactive || "transparent",
+          animationName: active ? animationName : "none",
+          animationDuration: `${animationDuration}ms`,
+          animationDelay: `${animationDelay}ms`,
+          animationIterationCount:
+            iterations === "infinite" ? "infinite" : iterations,
+          animationTimingFunction: "steps(1, end)",
+          animationFillMode: "forwards",
+        }}
+        onClick={handleClick}
+        role={interactive ? "button" : undefined}
+        tabIndex={interactive && !active ? 0 : undefined}
+        aria-label={`Pixel at row ${row + 1}, column ${col + 1}`}
+      />
+    );
+  }
+);
+
+Pixel.displayName = "Pixel";
+
+export const MorsePixelGridOptimized: React.FC<
+  MorsePixelGridOptimizedProps
+> = ({
   patterns = [],
   tempo = 200,
   iterations = "infinite",
@@ -159,32 +169,33 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
 
   // Generate CSS keyframes for each pixel
   const { keyframes, animationNames, totalDuration } = useMemo(() => {
-    if (patterns.length === 0) return { keyframes: '', animationNames: new Map(), totalDuration: 0 };
+    if (patterns.length === 0)
+      return { keyframes: "", animationNames: new Map(), totalDuration: 0 };
 
     const totalFrames = patterns.length;
     const totalDuration = totalFrames * tempo;
     const keyframesMap = new Map<string, string>();
     const animationNames = new Map<string, string>();
-    
-    const activeColor = colorScheme?.active || 'currentColor';
-    const inactiveColor = showGrid 
-      ? (colorScheme?.grid || colorScheme?.inactive || '#e5e5e5')
-      : (colorScheme?.inactive || 'transparent');
+
+    const activeColor = colorScheme?.active || "currentColor";
+    const inactiveColor = showGrid
+      ? colorScheme?.grid || colorScheme?.inactive || "#e5e5e5"
+      : colorScheme?.inactive || "transparent";
 
     // Generate keyframes for each unique pixel pattern
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
         const states: boolean[] = [];
-        patterns.forEach(pattern => {
+        patterns.forEach((pattern) => {
           if (isValidPattern(pattern)) {
             states.push(pattern[row]?.[col] || false);
           }
         });
-        
+
         // Create a unique ID for this state sequence
-        const stateKey = states.map(s => s ? '1' : '0').join('');
+        const stateKey = states.map((s) => (s ? "1" : "0")).join("");
         const animName = `morse-${stateKey}`;
-        
+
         if (!keyframesMap.has(stateKey)) {
           // Generate keyframes for this unique pattern
           const keyframeRules: string[] = [];
@@ -192,21 +203,26 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
             const percent = (index / states.length) * 100;
             const nextPercent = ((index + 1) / states.length) * 100;
             keyframeRules.push(
-              `${percent}%, ${nextPercent - 0.01}% { background-color: ${state ? activeColor : inactiveColor}; }`
+              `${percent}%, ${nextPercent - 0.01}% { background-color: ${
+                state ? activeColor : inactiveColor
+              }; }`
             );
           });
-          
-          keyframesMap.set(stateKey, `@keyframes ${animName} { ${keyframeRules.join(' ')} }`);
+
+          keyframesMap.set(
+            stateKey,
+            `@keyframes ${animName} { ${keyframeRules.join(" ")} }`
+          );
         }
-        
+
         animationNames.set(`${row}-${col}`, animName);
       }
     }
 
     return {
-      keyframes: Array.from(keyframesMap.values()).join('\n'),
+      keyframes: Array.from(keyframesMap.values()).join("\n"),
       animationNames,
-      totalDuration
+      totalDuration,
     };
   }, [patterns, tempo, gridSize, colorScheme, showGrid]);
 
@@ -216,8 +232,8 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
 
     // Create or update style element
     if (!styleRef.current) {
-      styleRef.current = document.createElement('style');
-      styleRef.current.id = 'morse-pixel-grid-animations';
+      styleRef.current = document.createElement("style");
+      styleRef.current.id = "morse-pixel-grid-animations";
       document.head.appendChild(styleRef.current);
     }
 
@@ -241,17 +257,17 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
     const checkCycle = () => {
       const elapsed = performance.now() - startTime;
       const currentCycle = Math.floor(elapsed / totalDuration);
-      
+
       if (currentCycle > cycleTrackerRef.current) {
         cycleTrackerRef.current = currentCycle;
         onCycleComplete();
-        
-        if (iterations !== 'infinite' && currentCycle >= iterations) {
+
+        if (iterations !== "infinite" && currentCycle >= iterations) {
           onComplete?.();
           return;
         }
       }
-      
+
       animationFrameRef.current = requestAnimationFrame(checkCycle);
     };
 
@@ -268,11 +284,11 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
   const animationDelays = useMemo(() => {
     const delays = new Map<string, number>();
     const center = gridSize / 2;
-    
+
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
         let delay = 0;
-        
+
         switch (animationPreset) {
           case "scale":
             delay = (row + col) * 20;
@@ -298,18 +314,18 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
             const distance = Math.sqrt(
               Math.pow(row - center, 2) + Math.pow(col - center, 2)
             );
-            delay = (distance / (Math.sqrt(2) * gridSize / 2)) * 150;
+            delay = (distance / ((Math.sqrt(2) * gridSize) / 2)) * 150;
             break;
           }
           case "cascade":
             delay = row * 40 + col * 10;
             break;
         }
-        
+
         delays.set(`${row}-${col}`, delay);
       }
     }
-    
+
     return delays;
   }, [gridSize, animationPreset]);
 
@@ -328,7 +344,7 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
             interactive={interactive}
             active={active}
             animationDelay={animationDelays.get(key) || 0}
-            animationName={animationNames.get(key) || ''}
+            animationName={animationNames.get(key) || ""}
             animationDuration={totalDuration}
             iterations={iterations}
             colorScheme={colorScheme}
@@ -363,7 +379,7 @@ export const MorsePixelGridOptimized: React.FC<MorsePixelGridOptimizedProps> = (
       )}
       style={{
         backgroundColor: colorScheme?.background,
-        display: 'grid',
+        display: "grid",
         gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
       }}
     >

@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PixelPulse & MatrixFlow",
-  description: "Innovative pixel-matrix animation system with synchronized label transitions",
+  description:
+    "Innovative pixel-matrix animation system with synchronized label transitions",
 };
 
 export default function RootLayout({

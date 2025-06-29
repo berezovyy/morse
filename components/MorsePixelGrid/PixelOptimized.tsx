@@ -19,33 +19,36 @@ const sizeClasses = {
 };
 
 // Pure component with no state updates
-export const PixelOptimized = memo(function PixelOptimized({
-  row,
-  col,
-  size = "md",
-  animationData,
-  delay = 0,
-  className,
-}: PixelOptimizedProps) {
-  return (
-    <div
-      className={cn(
-        "morse-pixel rounded-sm",
-        sizeClasses[size],
-        className
-      )}
-      data-row={row}
-      data-col={col}
-      style={{
-        animationDelay: `${delay}ms`,
-        // CSS will handle all animations
-      } as React.CSSProperties}
-    />
-  );
-}, (prevProps, nextProps) => {
-  // Only re-render if structural props change
-  return prevProps.row === nextProps.row &&
-         prevProps.col === nextProps.col &&
-         prevProps.size === nextProps.size &&
-         prevProps.className === nextProps.className;
-});
+export const PixelOptimized = memo(
+  function PixelOptimized({
+    row,
+    col,
+    size = "md",
+    animationData,
+    delay = 0,
+    className,
+  }: PixelOptimizedProps) {
+    return (
+      <div
+        className={cn("morse-pixel rounded-sm", sizeClasses[size], className)}
+        data-row={row}
+        data-col={col}
+        style={
+          {
+            animationDelay: `${delay}ms`,
+            // CSS will handle all animations
+          } as React.CSSProperties
+        }
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if structural props change
+    return (
+      prevProps.row === nextProps.row &&
+      prevProps.col === nextProps.col &&
+      prevProps.size === nextProps.size &&
+      prevProps.className === nextProps.className
+    );
+  }
+);

@@ -93,7 +93,7 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
         const states: number[] = [];
-        patterns.forEach(pattern => {
+        patterns.forEach((pattern) => {
           if (isValidPattern(pattern)) {
             states.push(pattern[row]?.[col] ? 1 : 0);
           }
@@ -110,48 +110,55 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
     if (!gridRef.current || !animationData || !active) return;
 
     // Clear existing animations
-    animationsRef.current.forEach(anim => anim.cancel());
+    animationsRef.current.forEach((anim) => anim.cancel());
     animationsRef.current = [];
 
-    const pixels = gridRef.current.querySelectorAll('.morse-pixel');
+    const pixels = gridRef.current.querySelectorAll(".morse-pixel");
     const { pixelAnimations, totalDuration } = animationData;
 
     pixels.forEach((pixel, index) => {
       const row = Math.floor(index / gridSize);
       const col = index % gridSize;
       const states = pixelAnimations.get(`${row}-${col}`);
-      
+
       if (!states) return;
 
       // Create keyframes for background color changes
       const keyframes = states.map((state, frameIndex) => ({
         offset: frameIndex / states.length,
-        backgroundColor: state 
-          ? (colorScheme?.active || 'currentColor')
-          : (showGrid ? (colorScheme?.grid || colorScheme?.inactive || '#e5e5e5') : (colorScheme?.inactive || 'transparent'))
+        backgroundColor: state
+          ? colorScheme?.active || "currentColor"
+          : showGrid
+          ? colorScheme?.grid || colorScheme?.inactive || "#e5e5e5"
+          : colorScheme?.inactive || "transparent",
       }));
 
       // Add final keyframe to ensure smooth loop
       keyframes.push({
         offset: 1,
-        backgroundColor: keyframes[0].backgroundColor
+        backgroundColor: keyframes[0].backgroundColor,
       });
 
       // Calculate animation delay based on preset
-      const delay = calculateAnimationDelay(row, col, gridSize, animationPreset);
+      const delay = calculateAnimationDelay(
+        row,
+        col,
+        gridSize,
+        animationPreset
+      );
 
       const animation = pixel.animate(keyframes, {
         duration: totalDuration,
-        iterations: iterations === 'infinite' ? Infinity : iterations,
+        iterations: iterations === "infinite" ? Infinity : iterations,
         delay,
-        easing: 'steps(' + states.length + ', end)',
-        fill: 'forwards'
+        easing: "steps(" + states.length + ", end)",
+        fill: "forwards",
       });
 
       // Track cycle completion
       if (row === 0 && col === 0) {
-        animation.addEventListener('finish', () => {
-          if (iterations !== 'infinite') {
+        animation.addEventListener("finish", () => {
+          if (iterations !== "infinite") {
             onComplete?.();
           }
         });
@@ -160,12 +167,14 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
         let lastCycle = 0;
         const checkCycle = () => {
           if (!animation.currentTime) return;
-          const currentCycle = Math.floor(animation.currentTime / totalDuration);
+          const currentCycle = Math.floor(
+            animation.currentTime / totalDuration
+          );
           if (currentCycle > lastCycle) {
             lastCycle = currentCycle;
             onCycleComplete?.();
           }
-          if (animation.playState === 'running') {
+          if (animation.playState === "running") {
             requestAnimationFrame(checkCycle);
           }
         };
@@ -174,21 +183,31 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
 
       animationsRef.current.push(animation);
     });
-  }, [animationData, active, colorScheme, gridSize, iterations, animationPreset, showGrid, onCycleComplete, onComplete]);
+  }, [
+    animationData,
+    active,
+    colorScheme,
+    gridSize,
+    iterations,
+    animationPreset,
+    showGrid,
+    onCycleComplete,
+    onComplete,
+  ]);
 
   // Initialize animations when component mounts or patterns change
   useEffect(() => {
     initializeAnimations();
 
     return () => {
-      animationsRef.current.forEach(anim => anim.cancel());
+      animationsRef.current.forEach((anim) => anim.cancel());
       animationsRef.current = [];
     };
   }, [initializeAnimations]);
 
   // Control playback state
   useEffect(() => {
-    animationsRef.current.forEach(anim => {
+    animationsRef.current.forEach((anim) => {
       if (active) {
         anim.play();
       } else {
@@ -201,25 +220,28 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
   useEffect(() => {
     if (!animationData) return;
     const playbackRate = 200 / tempo; // Normalize to base tempo
-    animationsRef.current.forEach(anim => {
+    animationsRef.current.forEach((anim) => {
       anim.playbackRate = playbackRate;
     });
   }, [tempo, animationData]);
 
-  const handlePixelClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!interactive || active) return;
-    
-    const pixel = e.target as HTMLElement;
-    if (!pixel.classList.contains('morse-pixel')) return;
-    
-    const index = Array.from(pixel.parentElement!.children).indexOf(pixel);
-    const row = Math.floor(index / gridSize);
-    const col = index % gridSize;
-    
-    // Toggle pixel state in CSS
-    const currentState = pixel.dataset.state === '1';
-    pixel.dataset.state = currentState ? '0' : '1';
-  }, [interactive, active, gridSize]);
+  const handlePixelClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!interactive || active) return;
+
+      const pixel = e.target as HTMLElement;
+      if (!pixel.classList.contains("morse-pixel")) return;
+
+      const index = Array.from(pixel.parentElement!.children).indexOf(pixel);
+      const row = Math.floor(index / gridSize);
+      const col = index % gridSize;
+
+      // Toggle pixel state in CSS
+      const currentState = pixel.dataset.state === "1";
+      pixel.dataset.state = currentState ? "0" : "1";
+    },
+    [interactive, active, gridSize]
+  );
 
   // Render static grid with data attributes
   const pixels = useMemo(() => {
@@ -238,13 +260,15 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
             data-row={row}
             data-col={col}
             data-state="0"
-            style={{
-              '--pixel-active-color': colorScheme?.active || 'currentColor',
-              '--pixel-inactive-color': showGrid 
-                ? (colorScheme?.grid || colorScheme?.inactive || '#e5e5e5')
-                : (colorScheme?.inactive || 'transparent'),
-              '--pixel-transition-duration': '300ms',
-            } as React.CSSProperties}
+            style={
+              {
+                "--pixel-active-color": colorScheme?.active || "currentColor",
+                "--pixel-inactive-color": showGrid
+                  ? colorScheme?.grid || colorScheme?.inactive || "#e5e5e5"
+                  : colorScheme?.inactive || "transparent",
+                "--pixel-transition-duration": "300ms",
+              } as React.CSSProperties
+            }
             role={interactive ? "button" : undefined}
             tabIndex={interactive && !active ? 0 : undefined}
             aria-label={`Pixel at row ${row + 1}, column ${col + 1}`}
@@ -253,7 +277,15 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
       }
     }
     return elements;
-  }, [gridSize, pixelSize, interactive, active, animationPreset, colorScheme, showGrid]);
+  }, [
+    gridSize,
+    pixelSize,
+    interactive,
+    active,
+    animationPreset,
+    colorScheme,
+    showGrid,
+  ]);
 
   return (
     <div
@@ -265,13 +297,16 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
         compact ? "p-0" : paddingClasses[pixelSize],
         className
       )}
-      style={{
-        backgroundColor: colorScheme?.background,
-        display: 'grid',
-        gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
-        '--pattern-duration': `${animationData?.totalDuration}ms`,
-        '--pattern-iterations': iterations === 'infinite' ? 'infinite' : iterations,
-      } as React.CSSProperties}
+      style={
+        {
+          backgroundColor: colorScheme?.background,
+          display: "grid",
+          gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
+          "--pattern-duration": `${animationData?.totalDuration}ms`,
+          "--pattern-iterations":
+            iterations === "infinite" ? "infinite" : iterations,
+        } as React.CSSProperties
+      }
       onClick={handlePixelClick}
     >
       {pixels}
@@ -287,7 +322,7 @@ function calculateAnimationDelay(
   preset: AnimationPreset
 ): number {
   const center = gridSize / 2;
-  
+
   switch (preset) {
     case "fade":
       return 0;
@@ -310,7 +345,7 @@ function calculateAnimationDelay(
       const distance = Math.sqrt(
         Math.pow(row - center, 2) + Math.pow(col - center, 2)
       );
-      return (distance / (Math.sqrt(2) * gridSize / 2)) * 150;
+      return (distance / ((Math.sqrt(2) * gridSize) / 2)) * 150;
     }
     case "cascade":
       return row * 40 + col * 10;

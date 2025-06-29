@@ -36,9 +36,9 @@ export const useDimensionsOptimized = (
   const updateDimensions = useCallback(() => {
     if (ref.current) {
       const { width, height } = ref.current.getBoundingClientRect();
-      
+
       // Only update if dimensions actually changed
-      setDimensions(prev => {
+      setDimensions((prev) => {
         if (prev.width === width && prev.height === height) {
           return prev;
         }
@@ -51,7 +51,7 @@ export const useDimensionsOptimized = (
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     if (debounceMs > 0) {
       timeoutRef.current = setTimeout(updateDimensions, debounceMs);
     } else {
@@ -75,7 +75,7 @@ export const useDimensionsOptimized = (
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       if (element) {
         observerCallbacks.delete(element);
         observer.unobserve(element);
@@ -97,7 +97,7 @@ export const useWidth = (
   const updateWidth = useCallback(() => {
     if (ref.current) {
       const newWidth = ref.current.getBoundingClientRect().width;
-      setWidth(prev => prev === newWidth ? prev : newWidth);
+      setWidth((prev) => (prev === newWidth ? prev : newWidth));
     }
   }, [ref]);
 
@@ -105,7 +105,7 @@ export const useWidth = (
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     if (debounceMs > 0) {
       timeoutRef.current = setTimeout(updateWidth, debounceMs);
     } else {
@@ -129,7 +129,7 @@ export const useWidth = (
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       if (element) {
         observerCallbacks.delete(element);
         observer.unobserve(element);
