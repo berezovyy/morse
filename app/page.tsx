@@ -1,168 +1,40 @@
 'use client'
 
 import React, { useState } from 'react'
-import { MorsePixelGrid, AnimationPreset } from '@/components/MorsePixelGrid'
+import { MorsePixelGrid } from '@/components/MorsePixelGrid'
 import { MorseMatrixFlow } from '@/components/MorseMatrixFlow'
 import { MorseButton } from '@/components/MorseButton'
 import { MorseButtonDemo } from '@/components/MorseButtonDemo'
 import { patternPresets } from '@/lib/patterns'
+import { Github, Copy, Check, ChevronRight, Sparkles } from 'lucide-react'
 
 export default function MorseDemoPage() {
-  const [isPlaying, setIsPlaying] = useState(true)
-  const [activePattern, setActivePattern] = useState(0)
+  const [isPlaying] = useState(true)
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [activePattern, setActivePattern] = useState('Play')
   const [buttonStatus, setButtonStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle')
 
-  const patterns = [
-    { name: 'Loading', pattern: patternPresets[0].pattern },
-    { name: 'Processing', pattern: patternPresets[1].pattern },
-    { name: 'Scanning', pattern: patternPresets[2].pattern },
-    { name: 'Building', pattern: patternPresets[3].pattern },
-    { name: 'Pulse', pattern: patternPresets[4].pattern },
-  ]
-
-  const handleButtonClick = () => {
-    setButtonStatus('loading')
-    setTimeout(() => {
-      setButtonStatus('success')
-      setTimeout(() => setButtonStatus('idle'), 2000)
-    }, 2000)
+  const handleCopyCode = (id: string, code: string) => {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(id)
+    setTimeout(() => setCopiedCode(null), 2000)
   }
 
+  const codeExamples = {
+    basic: `import { MorsePixelGrid } from '@morse/react'
+
+export default function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
-      <section className="relative overflow-hidden border-b">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-        <div className="relative max-w-5xl mx-auto px-6 py-24 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-            Morse
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
-            When pixels have something to say.
-          </p>
-
-          <div className="inline-flex items-center justify-center p-1 rounded-xl bg-background/50 backdrop-blur border">
-            <MorseMatrixFlow
-              labels={['Hello', 'World', 'Ready?', "Let's", 'Go!']}
-              active={isPlaying}
-              className="p-6"
-              gridSize={12}
-              tempo={2000}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Ready to Use</h2>
-            <p className="text-muted-foreground">
-              Drop these into your app and watch the magic happen
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Animated State Button */}
-            <div className="space-y-6 p-8 rounded-xl border bg-card">
-              <h3 className="text-xl font-semibold">Live Status Updates</h3>
-              <p className="text-sm text-muted-foreground">
-                Watch the button animate through different states
-              </p>
-              <MorseButtonDemo />
-            </div>
-
-            {/* MorseButton Showcase */}
-            <div className="space-y-6 p-8 rounded-xl border bg-card">
-              <h3 className="text-xl font-semibold">Buttons That Talk Back</h3>
-              <p className="text-sm text-muted-foreground">
-                Click them. They'll show you what's happening.
-              </p>
-
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <MorseButton
-                    onClick={handleButtonClick}
-                    status={buttonStatus}
-                    variant="primary"
-                  >
-                    Submit
-                  </MorseButton>
-                  <MorseButton variant="secondary">Cancel</MorseButton>
-                  <MorseButton variant="ghost">More</MorseButton>
-                </div>
-
-                <div className="flex gap-3">
-                  <MorseButton size="sm" variant="primary">
-                    Small
-                  </MorseButton>
-                  <MorseButton size="md" variant="primary">
-                    Medium
-                  </MorseButton>
-                  <MorseButton size="lg" variant="primary">
-                    Large
-                  </MorseButton>
-                </div>
-              </div>
-            </div>
-
-            {/* Pattern Showcase */}
-            <div className="space-y-6 p-8 rounded-xl border bg-card">
-              <h3 className="text-xl font-semibold">Pick Your Pattern</h3>
-              <p className="text-sm text-muted-foreground">
-                From subtle to "whoa, did you see that?"
-              </p>
-
-              <div className="grid grid-cols-3 gap-3">
-                {patterns.map((pattern, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActivePattern(index)}
-                    className={`p-3 rounded-lg border transition-all ${
-                      activePattern === index
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <MorsePixelGrid
-                      gridSize={5}
-                      pattern={pattern.pattern}
-                      activePixelColor="rgb(var(--primary-rgb))"
-                      tempo={1500}
-                      animationPreset="fade"
-                      className="w-full h-12"
-                    />
-                    <p className="text-xs mt-2">{pattern.name}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">
-              Get Started in 30 Seconds
-            </h2>
-            <p className="text-muted-foreground">Seriously, it's this easy</p>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            <div className="rounded-xl border bg-card overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/50">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  App.tsx
-                </span>
-              </div>
-              <pre className="p-6 overflow-x-auto">
-                <code className="text-sm">{`import { MorseMatrixFlow } from '@morse/react'
+    <MorsePixelGrid
+      pattern="loading"
+      active={true}
+      size="md"
+    />
+  )
+}`,
+    matrix: `import { MorseMatrixFlow } from '@morse/react'
 
 export default function App() {
   return (
@@ -172,17 +44,244 @@ export default function App() {
       tempo={2000}
     />
   )
-}`}</code>
-              </pre>
+}`,
+    button: `import { MorseButton } from '@morse/react'
+
+export default function App() {
+  return (
+    <MorseButton
+      status="loading"
+      onClick={() => console.log('clicked')}
+    >
+      Save Changes
+    </MorseButton>
+  )
+}`,
+  }
+
+  const patterns = [
+    { id: 'Play', name: 'Play', description: 'Play button animation' },
+    { id: 'Searching', name: 'Searching', description: 'Expanding circles' },
+    { id: 'Syncing', name: 'Syncing', description: 'Up and down arrows' },
+    { id: 'Importing', name: 'Importing', description: 'Expanding circles' },
+    { id: 'Loading', name: 'Loading', description: 'Loading spinner' },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+
+        <div className="relative max-w-7xl mx-auto px-6 pt-24 pb-32">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-background/50 backdrop-blur text-sm mb-8">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span>WIP Animated dots that speak button states</span>
+            </div>
+
+            <h1 className="text-6xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Morse
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
+              When pixels have something to say
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center mb-16">
+              <MorseButton
+                size="lg"
+                className="gap-2"
+                onClick={() =>
+                  window.open('https://github.com/berezovyy/morse', '_blank')
+                }
+              >
+                <Github className="w-5 h-5" />
+                View on GitHub
+              </MorseButton>
+              <MorseButton
+                variant="outline"
+                size="lg"
+                className="gap-2"
+                onClick={() => handleCopyCode('install', 'pnpm install _WIP_')}
+              >
+                {copiedCode === 'install' ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+                pnpm install _WIP_
+              </MorseButton>
+            </div>
+          </div>
+
+          <div className="bg-card/50 border rounded-3xl p-8 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h3 className="text-2xl font-semibold mb-4">
+                  Button Pattern Showcase
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Choose from various animated patterns for button loading
+                  states
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {patterns.map((pattern) => (
+                    <button
+                      key={pattern.id}
+                      onClick={() => setActivePattern(pattern.id)}
+                      className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                        activePattern === pattern.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      {pattern.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <div className="space-y-4">
+                  <div className="relative">
+                    <MorseButton
+                      status="loading"
+                      customPattern={
+                        patternPresets.find((p) => p.name === activePattern)
+                          ?.frames
+                      }
+                      size="lg"
+                      className="min-w-[200px]"
+                      alwaysShowMorse={true}
+                    >
+                      {activePattern}
+                    </MorseButton>
+                  </div>
+                  {/* <p className="text-sm text-muted-foreground text-center">
+                    {patterns.find((p) => p.id === activePattern)?.description}
+                  </p> */}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Get Started in Seconds</h2>
+            <p className="text-xl text-muted-foreground">
+              Copy, paste, and customize. It&apos;s that simple.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {Object.entries(codeExamples).map(([key, code]) => (
+              <div key={key} className="group">
+                <div className="rounded-xl border bg-card overflow-hidden hover:border-primary/50 transition-colors">
+                  <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50">
+                    <span className="text-sm font-medium">
+                      {key === 'basic'
+                        ? 'Basic Grid'
+                        : key === 'matrix'
+                          ? 'Matrix Flow'
+                          : 'Interactive Button'}
+                    </span>
+                    <button
+                      onClick={() => handleCopyCode(key, code)}
+                      className="p-1.5 rounded hover:bg-muted transition-colors"
+                    >
+                      {copiedCode === key ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+                  <pre className="p-4 overflow-x-auto">
+                    <code className="text-xs">{code}</code>
+                  </pre>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <MorseButton
+              size="lg"
+              className="gap-2"
+              onClick={() => window.open('/docs', '_blank')}
+            >
+              View Full Documentation
+              <ChevronRight className="w-5 h-5" />
+            </MorseButton>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 border-t">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-6">
+            Ready to make your app more delightful?
+          </h2>
+
+          <div className="flex flex-wrap gap-4 justify-center">
+            <MorseButton
+              size="lg"
+              className="gap-2"
+              onClick={() =>
+                handleCopyCode('install-cta', 'npm install @morse/react')
+              }
+            >
+              {copiedCode === 'install-cta' ? (
+                <Check className="w-5 h-5" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
+              Get Started
+            </MorseButton>
+            <MorseButton
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              onClick={() =>
+                window.open('https://github.com/berezovyy/morse', '_blank')
+              }
+            >
+              <Github className="w-5 h-5" />
+              Star on GitHub
+            </MorseButton>
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t py-12 px-6">
-        <div className="max-w-5xl mx-auto text-center text-sm text-muted-foreground">
-          <p>Made with ❤️ and probably too much coffee</p>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              © 2025. Made with ❤️ and probably too much coffee.
+            </div>
+            <div className="flex gap-6">
+              <a
+                href="/docs"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Documentation
+              </a>
+              <a
+                href="https://github.com/berezovyy/morse"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                GitHub
+              </a>
+              <a
+                href="/examples"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Examples
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
