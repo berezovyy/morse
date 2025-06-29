@@ -4,7 +4,12 @@ import React, { useState, useCallback } from 'react'
 import { MorseButton } from '@/components/MorseButton'
 import { patternPresets } from '@/lib/patterns'
 import { Github, Copy, Check, ChevronRight, Sparkles } from 'lucide-react'
-import { DEMO_PATTERNS, CODE_EXAMPLES, EXTERNAL_LINKS, COPY_TIMEOUT } from './constants'
+import {
+  DEMO_PATTERNS,
+  CODE_EXAMPLES,
+  EXTERNAL_LINKS,
+  COPY_TIMEOUT,
+} from './constants'
 import { CodeExample } from './components/CodeExample'
 import { PatternSelector } from './components/PatternSelector'
 
@@ -141,11 +146,7 @@ export default function MorseDemoPage() {
           </div>
 
           <div className="mt-12 text-center">
-            <MorseButton
-              size="lg"
-              className="gap-2"
-              onClick={handleOpenDocs}
-            >
+            <MorseButton size="lg" className="gap-2" onClick={handleOpenDocs}>
               View Full Documentation
               <ChevronRight className="w-5 h-5" />
             </MorseButton>
