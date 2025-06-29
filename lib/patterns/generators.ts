@@ -1,4 +1,4 @@
-export type Pattern = boolean[][];
+import { Pattern } from '@/lib/types';
 
 // Pattern cache for memoization
 const patternCache = new Map<string, Pattern>();
