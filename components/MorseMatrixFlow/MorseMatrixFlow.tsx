@@ -17,13 +17,15 @@ export interface MorseMatrixFlowProps {
   className?: string
   labelClassName?: string
   showLabel?: boolean
-  gap?: 'sm' | 'md' | 'lg'
+  gap?: 'none' | 'sm' | 'md' | 'lg'
+  compact?: boolean
 }
 
 const gapClasses = {
-  sm: 'gap-2',
-  md: 'gap-4',
-  lg: 'gap-6'
+  none: 'gap-0',
+  sm: 'gap-1',
+  md: 'gap-2',
+  lg: 'gap-4'
 }
 
 export const MorseMatrixFlow: React.FC<MorseMatrixFlowProps> = ({
@@ -36,7 +38,8 @@ export const MorseMatrixFlow: React.FC<MorseMatrixFlowProps> = ({
   className,
   labelClassName,
   showLabel = true,
-  gap = 'md'
+  gap = 'md',
+  compact = false
 }) => {
   const orchestratorRef = useRef<Orchestrator | null>(null)
   const [orchestratorState, setOrchestratorState] = useState<OrchestratorState>({
@@ -110,6 +113,7 @@ export const MorseMatrixFlow: React.FC<MorseMatrixFlowProps> = ({
         active={active && !orchestratorState.isTransitioning}
         tempo={200}
         iterations="infinite"
+        compact={compact}
         {...pixelGridProps}
       />
       
@@ -120,7 +124,8 @@ export const MorseMatrixFlow: React.FC<MorseMatrixFlowProps> = ({
           isTransitioning={orchestratorState.isTransitioning}
           transitionDuration={transitionDuration}
           className={cn(
-            'text-lg font-medium text-foreground',
+            compact ? 'text-sm' : 'text-lg',
+            'font-medium text-foreground',
             labelClassName
           )}
         />
