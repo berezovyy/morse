@@ -3,7 +3,15 @@
 import { useEffect, useState } from 'react';
 import { MorseButton } from '@/components/MorseButton';
 import { MorsePixelGrid } from '@/components/MorsePixelGrid';
+import { Pattern } from '@/lib/patterns';
 import { cn } from '@/lib/utils';
+
+// Helper function to convert string pattern to boolean array
+const stringToPattern = (stringPattern: string[]): Pattern => {
+  return stringPattern.map(row => 
+    row.split('').map(char => char === '#')
+  );
+};
 
 const animationStates = {
   importing: {
@@ -175,13 +183,15 @@ export function MorseButtonDemo() {
         <div className="flex items-center gap-3">
           <div className="w-[25px] h-[25px] relative">
             <MorsePixelGrid
-              pattern={stateData.pattern}
-              pixelSize={3}
-              gap={2}
-              activeColor="rgba(255, 255, 255, 0.8)"
-              inactiveColor="rgba(255, 255, 255, 0.2)"
-              sequences={stateData.sequences}
-              loop
+              patterns={[stringToPattern(stateData.pattern)]}
+              pixelSize="sm"
+              colorScheme={{
+                active: "rgba(255, 255, 255, 0.8)",
+                inactive: "rgba(255, 255, 255, 0.2)"
+              }}
+              tempo={200}
+              iterations="infinite"
+              gridSize={5}
               className="absolute inset-0"
             />
           </div>
