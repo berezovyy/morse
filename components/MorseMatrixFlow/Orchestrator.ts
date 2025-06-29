@@ -21,6 +21,8 @@ export class Orchestrator {
   private timer: NodeJS.Timeout | null = null
   private isRunning: boolean = false
   private onStateChange?: (state: OrchestratorState) => void
+  private startTime: number = 0
+  private pausedTime: number = 0
   
   constructor(config: OrchestratorConfig) {
     this.labels = config.labels
@@ -40,11 +42,35 @@ export class Orchestrator {
     if (this.isRunning || this.labels.length === 0) return
     
     this.isRunning = true
-    this.scheduleNext()
+    
+    if (this.pausedTime > 0) {
+      // Resume from pause
+      const elapsed = this.pausedTime - this.startTime
+      const remaining = this.patternDuration - elapsed
+      this.startTime = Date.now() - elapsed
+      this.pausedTime = 0
+      this.timer = setTimeout(() => this.startTransition(), Math.max(0, remaining))
+    } else {
+      // Fresh start
+      this.startTime = Date.now()
+      this.scheduleNext()
+    }
   }
   
   stop() {
     this.isRunning = false
+    this.clearTimer()
+  }
+  
+  pause() {
+    if (!this.isRunning) return
+    
+    this.isRunning = false
+    this.pausedTime = Date.now()
+    this.clearTimer()
+  }
+  
+  private clearTimer() {
     if (this.timer) {
       clearTimeout(this.timer)
       this.timer = null
@@ -54,13 +80,14 @@ export class Orchestrator {
   reset() {
     this.stop()
     this.currentIndex = 0
-    this.state = {
+    this.startTime = 0
+    this.pausedTime = 0
+    this.updateState({
       currentLabel: this.labels[0] || '',
       nextLabel: null,
       isTransitioning: false,
       currentPatternIndex: 0
-    }
-    this.emitStateChange()
+    })
   }
   
   setLabels(labels: string[]) {
@@ -68,13 +95,18 @@ export class Orchestrator {
     if (this.currentIndex >= labels.length) {
       this.currentIndex = 0
     }
-    this.state.currentLabel = labels[this.currentIndex] || ''
-    this.emitStateChange()
+    this.updateState({
+      ...this.state,
+      currentLabel: labels[this.currentIndex] || '',
+      currentPatternIndex: this.currentIndex
+    })
   }
   
   private scheduleNext() {
     if (!this.isRunning) return
     
+    this.clearTimer()
+    this.startTime = Date.now()
     this.timer = setTimeout(() => {
       this.startTransition()
     }, this.patternDuration)
@@ -84,13 +116,13 @@ export class Orchestrator {
     if (!this.isRunning) return
     
     const nextIndex = (this.currentIndex + 1) % this.labels.length
-    this.state = {
+    this.updateState({
       ...this.state,
       nextLabel: this.labels[nextIndex],
       isTransitioning: true
-    }
-    this.emitStateChange()
+    })
     
+    this.clearTimer()
     this.timer = setTimeout(() => {
       this.completeTransition()
     }, this.transitionDuration)
@@ -100,19 +132,25 @@ export class Orchestrator {
     if (!this.isRunning) return
     
     this.currentIndex = (this.currentIndex + 1) % this.labels.length
-    this.state = {
+    this.updateState({
       currentLabel: this.labels[this.currentIndex],
       nextLabel: null,
       isTransitioning: false,
       currentPatternIndex: this.currentIndex
-    }
-    this.emitStateChange()
+    })
     
     this.scheduleNext()
   }
   
-  private emitStateChange() {
-    this.onStateChange?.(this.state)
+  private updateState(newState: OrchestratorState) {
+    // Only update if state actually changed
+    if (this.state.currentLabel !== newState.currentLabel ||
+        this.state.nextLabel !== newState.nextLabel ||
+        this.state.isTransitioning !== newState.isTransitioning ||
+        this.state.currentPatternIndex !== newState.currentPatternIndex) {
+      this.state = newState
+      this.onStateChange?.(newState)
+    }
   }
   
   getCurrentState(): OrchestratorState {
@@ -122,5 +160,14 @@ export class Orchestrator {
   destroy() {
     this.stop()
     this.onStateChange = undefined
+    this.labels = []
+  }
+  
+  getProgress(): number {
+    if (!this.isRunning || this.pausedTime > 0) return 0
+    
+    const elapsed = Date.now() - this.startTime
+    const progress = Math.min(elapsed / this.patternDuration, 1)
+    return progress
   }
 }
