@@ -1,71 +1,30 @@
 'use client'
 
-import React, { useState } from 'react'
-import { MorsePixelGrid } from '@/components/MorsePixelGrid'
-import { MorseMatrixFlow } from '@/components/MorseMatrixFlow'
+import React, { useState, useCallback } from 'react'
 import { MorseButton } from '@/components/MorseButton'
-import { MorseButtonDemo } from '@/components/MorseButtonDemo'
 import { patternPresets } from '@/lib/patterns'
 import { Github, Copy, Check, ChevronRight, Sparkles } from 'lucide-react'
+import { DEMO_PATTERNS, CODE_EXAMPLES, EXTERNAL_LINKS, COPY_TIMEOUT } from './constants'
+import { CodeExample } from './components/CodeExample'
+import { PatternSelector } from './components/PatternSelector'
 
 export default function MorseDemoPage() {
-  const [isPlaying] = useState(true)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [activePattern, setActivePattern] = useState('Play')
-  const [buttonStatus, setButtonStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error'
-  >('idle')
 
-  const handleCopyCode = (id: string, code: string) => {
+  const handleCopyCode = useCallback((id: string, code: string) => {
     navigator.clipboard.writeText(code)
     setCopiedCode(id)
-    setTimeout(() => setCopiedCode(null), 2000)
-  }
+    setTimeout(() => setCopiedCode(null), COPY_TIMEOUT)
+  }, [])
 
-  const codeExamples = {
-    basic: `import { MorsePixelGrid } from '@morse/react'
+  const handleOpenGithub = useCallback(() => {
+    window.open(EXTERNAL_LINKS.GITHUB, '_blank')
+  }, [])
 
-export default function App() {
-  return (
-    <MorsePixelGrid
-      pattern="loading"
-      active={true}
-      size="md"
-    />
-  )
-}`,
-    matrix: `import { MorseMatrixFlow } from '@morse/react'
-
-export default function App() {
-  return (
-    <MorseMatrixFlow
-      labels={['Loading', 'Processing', 'Complete']}
-      active={true}
-      tempo={2000}
-    />
-  )
-}`,
-    button: `import { MorseButton } from '@morse/react'
-
-export default function App() {
-  return (
-    <MorseButton
-      status="loading"
-      onClick={() => console.log('clicked')}
-    >
-      Save Changes
-    </MorseButton>
-  )
-}`,
-  }
-
-  const patterns = [
-    { id: 'Play', name: 'Play', description: 'Play button animation' },
-    { id: 'Searching', name: 'Searching', description: 'Expanding circles' },
-    { id: 'Syncing', name: 'Syncing', description: 'Up and down arrows' },
-    { id: 'Importing', name: 'Importing', description: 'Expanding circles' },
-    { id: 'Loading', name: 'Loading', description: 'Loading spinner' },
-  ]
+  const handleOpenDocs = useCallback(() => {
+    window.open(EXTERNAL_LINKS.DOCS, '_blank')
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
@@ -91,9 +50,7 @@ export default function App() {
               <MorseButton
                 size="lg"
                 className="gap-2"
-                onClick={() =>
-                  window.open('https://github.com/berezovyy/morse', '_blank')
-                }
+                onClick={handleOpenGithub}
               >
                 <Github className="w-5 h-5" />
                 View on GitHub
@@ -124,21 +81,11 @@ export default function App() {
                   Choose from various animated patterns for button loading
                   states
                 </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {patterns.map((pattern) => (
-                    <button
-                      key={pattern.id}
-                      onClick={() => setActivePattern(pattern.id)}
-                      className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                        activePattern === pattern.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted hover:bg-muted/80'
-                      }`}
-                    >
-                      {pattern.name}
-                    </button>
-                  ))}
-                </div>
+                <PatternSelector
+                  patterns={DEMO_PATTERNS}
+                  activePattern={activePattern}
+                  onPatternChange={setActivePattern}
+                />
               </div>
               <div className="flex justify-center">
                 <div className="space-y-4">
@@ -157,7 +104,7 @@ export default function App() {
                     </MorseButton>
                   </div>
                   {/* <p className="text-sm text-muted-foreground text-center">
-                    {patterns.find((p) => p.id === activePattern)?.description}
+                    {DEMO_PATTERNS.find((p) => p.id === activePattern)?.description}
                   </p> */}
                 </div>
               </div>
@@ -176,33 +123,20 @@ export default function App() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {Object.entries(codeExamples).map(([key, code]) => (
-              <div key={key} className="group">
-                <div className="rounded-xl border bg-card overflow-hidden hover:border-primary/50 transition-colors">
-                  <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50">
-                    <span className="text-sm font-medium">
-                      {key === 'basic'
-                        ? 'Basic Grid'
-                        : key === 'matrix'
-                          ? 'Matrix Flow'
-                          : 'Interactive Button'}
-                    </span>
-                    <button
-                      onClick={() => handleCopyCode(key, code)}
-                      className="p-1.5 rounded hover:bg-muted transition-colors"
-                    >
-                      {copiedCode === key ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Copy className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  </div>
-                  <pre className="p-4 overflow-x-auto">
-                    <code className="text-xs">{code}</code>
-                  </pre>
-                </div>
-              </div>
+            {Object.entries(CODE_EXAMPLES).map(([key, code]) => (
+              <CodeExample
+                key={key}
+                title={
+                  key === 'basic'
+                    ? 'Basic Grid'
+                    : key === 'matrix'
+                      ? 'Matrix Flow'
+                      : 'Interactive Button'
+                }
+                code={code}
+                isActive={copiedCode === key}
+                onCopy={() => handleCopyCode(key, code)}
+              />
             ))}
           </div>
 
@@ -210,7 +144,7 @@ export default function App() {
             <MorseButton
               size="lg"
               className="gap-2"
-              onClick={() => window.open('/docs', '_blank')}
+              onClick={handleOpenDocs}
             >
               View Full Documentation
               <ChevronRight className="w-5 h-5" />
@@ -244,9 +178,7 @@ export default function App() {
               variant="outline"
               size="lg"
               className="gap-2"
-              onClick={() =>
-                window.open('https://github.com/berezovyy/morse', '_blank')
-              }
+              onClick={handleOpenGithub}
             >
               <Github className="w-5 h-5" />
               Star on GitHub
@@ -263,19 +195,19 @@ export default function App() {
             </div>
             <div className="flex gap-6">
               <a
-                href="/docs"
+                href={EXTERNAL_LINKS.DOCS}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Documentation
               </a>
               <a
-                href="https://github.com/berezovyy/morse"
+                href={EXTERNAL_LINKS.GITHUB}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 GitHub
               </a>
               <a
-                href="/examples"
+                href={EXTERNAL_LINKS.EXAMPLES}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Examples

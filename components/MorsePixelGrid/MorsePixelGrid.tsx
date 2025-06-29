@@ -5,23 +5,9 @@ import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Pattern, isValidPattern } from '@/lib/patterns'
 import { Pixel } from './Pixel'
-
-export interface ColorScheme {
-  active: string
-  inactive: string
-  background?: string
-  grid?: string
-}
-
-export type AnimationPreset =
-  | 'fade'
-  | 'scale'
-  | 'slide'
-  | 'wave'
-  | 'spiral'
-  | 'random'
-  | 'ripple'
-  | 'cascade'
+import { ColorScheme, AnimationPreset, PixelSize } from '@/lib/types'
+import { PIXEL_SIZES, GRID_SIZES, ANIMATION_TIMING } from '@/lib/constants'
+import { calculateAnimationDelay } from './animations'
 
 export interface MorsePixelGridProps {
   patterns?: Pattern[]
@@ -30,7 +16,7 @@ export interface MorsePixelGridProps {
   active?: boolean
   onCycleComplete?: () => void
   onComplete?: () => void
-  pixelSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  pixelSize?: PixelSize
   colorScheme?: ColorScheme
   interactive?: boolean
   className?: string
@@ -40,65 +26,19 @@ export interface MorsePixelGridProps {
   showGrid?: boolean
 }
 
-const gapClasses = {
-  '2xs': 'gap-[1px]',
-  xs: 'gap-[1px]',
-  sm: 'gap-[2px]',
-  md: 'gap-[3px]',
-  lg: 'gap-[4px]',
-  xl: 'gap-[5px]',
-}
-
 const paddingClasses = {
+  '2xs': 'p-1',
   xs: 'p-1',
   sm: 'p-2',
   md: 'p-3',
   lg: 'p-4',
   xl: 'p-4',
-}
+} as const
 
-function calculateAnimationDelay(
-  row: number,
-  col: number,
-  gridSize: number,
-  preset: AnimationPreset
-): number {
-  const center = gridSize / 2
-
-  switch (preset) {
-    case 'fade':
-      return 0
-    case 'scale':
-      return (row + col) * 20
-    case 'slide':
-      return col * 30
-    case 'wave':
-      return Math.sin((row + col) / 2) * 100 + 100
-    case 'spiral': {
-      const angle = Math.atan2(row - center, col - center)
-      const distance = Math.sqrt(
-        Math.pow(row - center, 2) + Math.pow(col - center, 2)
-      )
-      return (angle + Math.PI) * 50 + distance * 30
-    }
-    case 'random':
-      return Math.random() * 200
-    case 'ripple': {
-      const distance = Math.sqrt(
-        Math.pow(row - center, 2) + Math.pow(col - center, 2)
-      )
-      return (distance / ((Math.sqrt(2) * gridSize) / 2)) * 150
-    }
-    case 'cascade':
-      return row * 40 + col * 10
-    default:
-      return 0
-  }
-}
 
 export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
   patterns = [],
-  tempo = 200,
+  tempo = ANIMATION_TIMING.TEMPO_DEFAULT,
   iterations = 'infinite',
   active = true,
   onCycleComplete,
@@ -107,7 +47,7 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
   colorScheme,
   interactive = false,
   className,
-  gridSize = 7,
+  gridSize = GRID_SIZES.DEFAULT,
   animationPreset = 'fade',
   compact = false,
   showGrid = true,
@@ -237,7 +177,7 @@ export const MorsePixelGrid: React.FC<MorsePixelGridProps> = ({
       className={cn(
         'morse-pixel-grid inline-grid rounded-lg',
         !compact && 'bg-background/50 backdrop-blur-sm',
-        gapClasses[pixelSize],
+        PIXEL_SIZES[pixelSize].gap,
         compact ? 'p-0' : paddingClasses[pixelSize],
         className
       )}

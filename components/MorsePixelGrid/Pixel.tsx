@@ -1,13 +1,14 @@
-import React, { memo } from 'react'
+import React, { memo, useCallback } from 'react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
-import type { AnimationPreset } from './MorsePixelGrid'
+import { AnimationPreset, PixelSize } from '@/lib/types'
+import { PIXEL_SIZES } from '@/lib/constants'
 
 export interface PixelProps {
   active: boolean
   row: number
   col: number
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: PixelSize
   onClick?: (row: number, col: number) => void
   onMouseEnter?: (row: number, col: number) => void
   interactive?: boolean
@@ -19,14 +20,16 @@ export interface PixelProps {
   gridColor?: string
 }
 
-const sizeClasses = {
-  '2xs': 'w-[3px] h-[3px]', // 2px
-  xs: 'w-1 h-1', // 4px
-  sm: 'w-1.5 h-1.5', // 6px
-  md: 'w-2 h-2', // 8px
-  lg: 'w-3 h-3', // 12px
-  xl: 'w-4 h-4', // 16px
-}
+const DEFAULT_COLORS = {
+  ACTIVE: 'rgb(0, 0, 0)',
+  INACTIVE_GRID: '#e5e5e5',
+  TRANSPARENT: 'transparent',
+} as const
+
+const ANIMATION_CONFIG = {
+  DURATION: 0.3,
+  EASE: 'easeOut',
+} as const
 
 const getAnimationVariants = (preset: AnimationPreset, showGrid: boolean) => {
   const inactiveOpacity = showGrid ? 1 : 0
@@ -88,31 +91,31 @@ export const Pixel = memo(function Pixel({
   showGrid = false,
   gridColor,
 }: PixelProps) {
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (interactive && onClick) {
       onClick(row, col)
     }
-  }
+  }, [interactive, onClick, row, col])
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (interactive && onMouseEnter) {
       onMouseEnter(row, col)
     }
-  }
+  }, [interactive, onMouseEnter, row, col])
 
   const variants = getAnimationVariants(animationPreset, showGrid)
 
   const backgroundColor = active
-    ? color || 'rgb(0, 0, 0)' // Default to black instead of currentColor
+    ? color || DEFAULT_COLORS.ACTIVE
     : showGrid
-      ? gridColor || inactiveColor || '#e5e5e5'
-      : inactiveColor || 'transparent'
+      ? gridColor || inactiveColor || DEFAULT_COLORS.INACTIVE_GRID
+      : inactiveColor || DEFAULT_COLORS.TRANSPARENT
 
   return (
     <motion.div
       className={cn(
         'rounded-sm block',
-        sizeClasses[size],
+        PIXEL_SIZES[size].size,
         interactive && 'cursor-pointer'
       )}
       onClick={handleClick}
@@ -121,9 +124,9 @@ export const Pixel = memo(function Pixel({
       initial="inactive"
       animate={active ? 'active' : 'inactive'}
       transition={{
-        duration: 0.3,
+        duration: ANIMATION_CONFIG.DURATION,
         delay: active ? delay / 1000 : 0,
-        ease: 'easeOut',
+        ease: ANIMATION_CONFIG.EASE,
       }}
       style={{
         backgroundColor,

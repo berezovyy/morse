@@ -1,9 +1,6 @@
-export { MorsePixelGrid } from "./MorsePixelGrid";
-export type {
-  MorsePixelGridProps,
-  ColorScheme,
-  AnimationPreset,
-} from "./MorsePixelGrid";
+export { MorsePixelGrid } from './MorsePixelGrid';
+export type { MorsePixelGridProps } from './MorsePixelGrid';
+export type { ColorScheme, AnimationPreset } from '@/lib/types';
 export { MorsePixelGridOptimized } from "./MorsePixelGridOptimized";
 export type { MorsePixelGridOptimizedProps } from "./MorsePixelGridOptimized";
 export { Pixel } from "./Pixel";
