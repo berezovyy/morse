@@ -58,6 +58,73 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      animation: {
+        'pixel-pulse': 'pixelPulse 0.5s ease-in-out',
+        'label-morph': 'labelMorph 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        'container-expand': 'containerExpand 0.4s ease-out',
+        'pixel-fade-in': 'pixelFadeIn 0.3s ease-out',
+        'pixel-fade-out': 'pixelFadeOut 0.3s ease-in',
+        'grid-wave': 'gridWave 1.5s ease-in-out infinite',
+        'morse-dot': 'morseDot 0.2s ease-out',
+        'morse-dash': 'morseDash 0.6s ease-out',
+        'fade-in': 'fadeIn 0.4s ease-out forwards',
+        'scale-in': 'scaleIn 0.4s ease-out forwards',
+        'slide-in': 'slideIn 0.4s ease-out forwards',
+        'scale-fade-in': 'scaleFadeIn 0.5s ease-out forwards',
+      },
+      keyframes: {
+        pixelPulse: {
+          '0%': { transform: 'scale(0.8)', opacity: '0.5' },
+          '50%': { transform: 'scale(1.2)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '0.8' },
+        },
+        labelMorph: {
+          '0%': { transform: 'scale(0.8) rotateX(15deg)', opacity: '0' },
+          '100%': { transform: 'scale(1) rotateX(0deg)', opacity: '1' },
+        },
+        containerExpand: {
+          '0%': { width: 'var(--from-width)' },
+          '100%': { width: 'var(--to-width)' },
+        },
+        pixelFadeIn: {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        pixelFadeOut: {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(0)', opacity: '0' },
+        },
+        gridWave: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+        morseDot: {
+          '0%': { transform: 'scale(0)', backgroundColor: 'hsl(var(--primary))' },
+          '50%': { transform: 'scale(1.2)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        morseDash: {
+          '0%': { transform: 'scaleX(0)', backgroundColor: 'hsl(var(--primary))' },
+          '50%': { transform: 'scaleX(1.1)' },
+          '100%': { transform: 'scaleX(1)' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(-100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        scaleFadeIn: {
+          '0%': { transform: 'scale(0.5)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+      },
     },
   },
   plugins: [tailwindAnimate],
