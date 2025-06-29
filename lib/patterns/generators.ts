@@ -24,7 +24,9 @@ const getCachedPattern = <T extends any[]>(
   // Limit cache size
   if (patternCache.size >= MAX_CACHE_SIZE) {
     const firstKey = patternCache.keys().next().value;
-    patternCache.delete(firstKey);
+    if (firstKey !== undefined) {
+      patternCache.delete(firstKey);
+    }
   }
 
   patternCache.set(key, pattern);

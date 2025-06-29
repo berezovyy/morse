@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useMemo, memo } from "react";
+import React, { useRef, memo } from "react";
+import { motion, AnimatePresence, MotionConfig } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useWidth } from "@/lib/hooks/useDimensionsOptimized";
 
@@ -20,7 +21,6 @@ export const LabelMorphOptimized = memo<LabelMorphOptimizedProps>(
     className,
     transitionDuration = 300,
   }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
     const currentRef = useRef<HTMLElement>(null);
     const nextRef = useRef<HTMLElement>(null);
 
@@ -28,89 +28,63 @@ export const LabelMorphOptimized = memo<LabelMorphOptimizedProps>(
     const currentWidth = useWidth(currentRef, 16);
     const nextWidth = useWidth(nextRef, 16);
 
-    // Memoize container width calculation
-    const containerWidth = useMemo(() => {
-      if (isTransitioning && nextLabel) {
-        return nextWidth || currentWidth;
-      }
-      return currentWidth;
-    }, [isTransitioning, currentWidth, nextWidth, nextLabel]);
-
-    // Memoize styles to prevent recreation
-    const containerStyle = useMemo(
-      () => ({
-        transitionDuration: `${transitionDuration}ms`,
-        width: containerWidth ? `${containerWidth}px` : "auto",
-        transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-      }),
-      [transitionDuration, containerWidth]
-    );
-
-    const currentTransform = useMemo(
-      () =>
-        isTransitioning
-          ? "translateY(-20px) rotateX(45deg)"
-          : "translateY(0) rotateX(0)",
-      [isTransitioning]
-    );
-
-    const nextTransform = useMemo(
-      () =>
-        isTransitioning
-          ? "translateY(0) rotateX(0)"
-          : "translateY(20px) rotateX(-45deg)",
-      [isTransitioning]
-    );
-
-    const currentStyle = useMemo(
-      () => ({
-        transitionDuration: `${transitionDuration}ms`,
-        transform: currentTransform,
-      }),
-      [transitionDuration, currentTransform]
-    );
-
-    const nextStyle = useMemo(
-      () => ({
-        transitionDuration: `${transitionDuration}ms`,
-        transform: nextTransform,
-      }),
-      [transitionDuration, nextTransform]
-    );
+    const containerWidth = isTransitioning && nextLabel ? nextWidth : currentWidth;
 
     return (
-      <div
-        ref={containerRef}
-        className={cn(
-          "relative inline-block overflow-hidden transition-all",
-          className
-        )}
-        style={containerStyle}
+      <MotionConfig
+        transition={{
+          duration: transitionDuration / 1000,
+          ease: [0.4, 0, 0.2, 1],
+        }}
       >
-        <span
-          ref={currentRef}
-          className={cn(
-            "inline-block whitespace-nowrap transition-all",
-            isTransitioning && "animate-label-morph opacity-0 scale-75"
-          )}
-          style={currentStyle}
+        <motion.div
+          className={cn("relative inline-block overflow-hidden", className)}
+          animate={{ width: containerWidth || "auto" }}
         >
-          {currentLabel}
-        </span>
-
-        {nextLabel && (
-          <span
-            ref={nextRef}
-            className={cn(
-              "absolute inset-0 inline-block whitespace-nowrap transition-all",
-              isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-125"
+          <AnimatePresence mode="wait">
+            {!isTransitioning && (
+              <motion.span
+                key="current"
+                ref={currentRef}
+                className="inline-block whitespace-nowrap"
+                initial={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+                exit={{
+                  opacity: 0,
+                  y: -20,
+                  rotateX: 45,
+                  scale: 0.75,
+                }}
+              >
+                {currentLabel}
+              </motion.span>
             )}
-            style={nextStyle}
-          >
-            {nextLabel}
-          </span>
-        )}
-      </div>
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isTransitioning && nextLabel && (
+              <motion.span
+                key="next"
+                ref={nextRef}
+                className="absolute inset-0 inline-block whitespace-nowrap"
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                  rotateX: -45,
+                  scale: 1.25,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  rotateX: 0,
+                  scale: 1,
+                }}
+              >
+                {nextLabel}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </MotionConfig>
     );
   }
 );

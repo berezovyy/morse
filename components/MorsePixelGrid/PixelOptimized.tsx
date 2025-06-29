@@ -1,13 +1,17 @@
 import React, { memo } from "react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export interface PixelOptimizedProps {
+  active: boolean;
   row: number;
   col: number;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
-  animationData?: string; // CSS animation keyframes
   delay?: number;
-  className?: string;
+  color?: string;
+  inactiveColor?: string;
+  showGrid?: boolean;
+  gridColor?: string;
 }
 
 const sizeClasses = {
@@ -18,37 +22,37 @@ const sizeClasses = {
   xl: "w-4 h-4",
 };
 
-// Pure component with no state updates
-export const PixelOptimized = memo(
-  function PixelOptimized({
-    row,
-    col,
-    size = "md",
-    animationData,
-    delay = 0,
-    className,
-  }: PixelOptimizedProps) {
-    return (
-      <div
-        className={cn("morse-pixel rounded-sm", sizeClasses[size], className)}
-        data-row={row}
-        data-col={col}
-        style={
-          {
-            animationDelay: `${delay}ms`,
-            // CSS will handle all animations
-          } as React.CSSProperties
-        }
-      />
-    );
-  },
-  (prevProps, nextProps) => {
-    // Only re-render if structural props change
-    return (
-      prevProps.row === nextProps.row &&
-      prevProps.col === nextProps.col &&
-      prevProps.size === nextProps.size &&
-      prevProps.className === nextProps.className
-    );
-  }
-);
+export const PixelOptimized = memo(function PixelOptimized({
+  active,
+  size = "md",
+  delay = 0,
+  color,
+  inactiveColor,
+  showGrid = false,
+  gridColor,
+}: PixelOptimizedProps) {
+  const backgroundColor = active
+    ? color || "rgb(0, 0, 0)" // Default to black
+    : showGrid
+    ? gridColor || inactiveColor || "#e5e5e5"
+    : inactiveColor || "transparent";
+
+  const inactiveOpacity = showGrid ? 1 : 0;
+
+  return (
+    <motion.div
+      className={cn("rounded-sm", sizeClasses[size])}
+      initial={{ scale: 1, opacity: inactiveOpacity }}
+      animate={{
+        scale: active ? 1 : showGrid ? 1 : 0.8,
+        opacity: active ? 1 : inactiveOpacity,
+      }}
+      transition={{
+        duration: 0.2,
+        delay: active ? delay / 1000 : 0,
+        ease: "easeOut",
+      }}
+      style={{ backgroundColor }}
+    />
+  );
+});

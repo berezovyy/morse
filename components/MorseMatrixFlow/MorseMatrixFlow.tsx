@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { MorsePixelGrid, MorsePixelGridProps } from "../MorsePixelGrid";
 import { LabelMorph } from "./LabelMorph";
 import { Orchestrator, OrchestratorState } from "./Orchestrator";
-import { Pattern, patternPresets, getPresetByName } from "@/lib/patterns";
+import { Pattern, getPresetByName } from "@/lib/patterns";
 
 export interface MorseMatrixFlowProps {
   labels?: string[];
@@ -87,7 +87,7 @@ export const MorseMatrixFlow: React.FC<MorseMatrixFlowProps> = ({
     return () => {
       orchestratorRef.current?.destroy();
     };
-  }, [labels, patternDuration, transitionDuration]);
+  }, [labels, patternDuration, transitionDuration, active]);
 
   useEffect(() => {
     if (!orchestratorRef.current) return;

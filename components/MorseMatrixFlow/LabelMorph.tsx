@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useDimensions } from "@/lib/hooks/useDimensions";
 
@@ -19,67 +20,72 @@ export const LabelMorph: React.FC<LabelMorphProps> = ({
   className,
   transitionDuration = 300,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const currentRef = useRef<HTMLElement>(null);
   const nextRef = useRef<HTMLElement>(null);
   const { width: currentWidth } = useDimensions(currentRef);
   const { width: nextWidth } = useDimensions(nextRef);
-  const [containerWidth, setContainerWidth] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (isTransitioning && nextLabel) {
-      setContainerWidth(nextWidth);
-    } else {
-      setContainerWidth(currentWidth);
-    }
-  }, [isTransitioning, currentWidth, nextWidth, nextLabel]);
+  const containerWidth = isTransitioning && nextLabel ? nextWidth : currentWidth;
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "relative inline-block overflow-hidden transition-all",
-        className
-      )}
-      style={{
-        transitionDuration: `${transitionDuration}ms`,
-        width: containerWidth ? `${containerWidth}px` : "auto",
-        transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+    <motion.div
+      className={cn("relative inline-block overflow-hidden", className)}
+      animate={{ width: containerWidth || "auto" }}
+      transition={{
+        duration: transitionDuration / 1000,
+        ease: [0.4, 0, 0.2, 1],
       }}
     >
-      <span
-        ref={currentRef}
-        className={cn(
-          "inline-block whitespace-nowrap transition-all",
-          isTransitioning && "animate-label-morph opacity-0 scale-75"
+      <AnimatePresence mode="wait">
+        {!isTransitioning && (
+          <motion.span
+            key="current"
+            ref={currentRef}
+            className="inline-block whitespace-nowrap"
+            initial={{ opacity: 1, y: 0, rotateX: 0 }}
+            exit={{
+              opacity: 0,
+              y: -20,
+              rotateX: 45,
+              scale: 0.75,
+            }}
+            transition={{
+              duration: transitionDuration / 1000,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          >
+            {currentLabel}
+          </motion.span>
         )}
-        style={{
-          transitionDuration: `${transitionDuration}ms`,
-          transform: isTransitioning
-            ? "translateY(-20px) rotateX(45deg)"
-            : "translateY(0) rotateX(0)",
-        }}
-      >
-        {currentLabel}
-      </span>
+      </AnimatePresence>
 
-      {nextLabel && (
-        <span
-          ref={nextRef}
-          className={cn(
-            "absolute inset-0 inline-block whitespace-nowrap transition-all",
-            isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-125"
-          )}
-          style={{
-            transitionDuration: `${transitionDuration}ms`,
-            transform: isTransitioning
-              ? "translateY(0) rotateX(0)"
-              : "translateY(20px) rotateX(-45deg)",
-          }}
-        >
-          {nextLabel}
-        </span>
-      )}
-    </div>
+      <AnimatePresence>
+        {isTransitioning && nextLabel && (
+          <motion.span
+            key="next"
+            ref={nextRef}
+            className="absolute inset-0 inline-block whitespace-nowrap"
+            initial={{
+              opacity: 0,
+              y: 20,
+              rotateX: -45,
+              scale: 1.25,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              rotateX: 0,
+              scale: 1,
+            }}
+            transition={{
+              duration: transitionDuration / 1000,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          >
+            {nextLabel}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };

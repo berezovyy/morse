@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useRef,
   useState,
-  useCallback,
   useMemo,
   memo,
 } from "react";
@@ -15,7 +14,7 @@ import {
 } from "../MorsePixelGrid";
 import { LabelMorphOptimized } from "./LabelMorphOptimized";
 import { Orchestrator, OrchestratorState } from "./Orchestrator";
-import { Pattern, patternPresets, getPresetByName } from "@/lib/patterns";
+import { Pattern, getPresetByName } from "@/lib/patterns";
 
 export interface MorseMatrixFlowOptimizedProps {
   labels?: string[];
