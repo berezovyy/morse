@@ -14,6 +14,7 @@ interface EditorCanvasProps {
 export function EditorCanvas({ pattern, onPatternChange, previousPattern, showPreviousFrame = true }: EditorCanvasProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragValue, setDragValue] = useState(true);
+  const [wrapAround, setWrapAround] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
   const fixedGridSize = 6; // Always use 6x6 grid
 
@@ -62,26 +63,167 @@ export function EditorCanvas({ pattern, onPatternChange, previousPattern, showPr
     }
   }, [isDragging, dragValue, togglePixel]);
 
+  const shiftPattern = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+    const newPattern = pattern.map(row => [...row]);
+    const size = fixedGridSize;
+
+    switch (direction) {
+      case 'up':
+        if (wrapAround) {
+          const firstRow = newPattern[0];
+          for (let i = 0; i < size - 1; i++) {
+            newPattern[i] = newPattern[i + 1];
+          }
+          newPattern[size - 1] = firstRow;
+        } else {
+          for (let i = 0; i < size - 1; i++) {
+            newPattern[i] = newPattern[i + 1];
+          }
+          newPattern[size - 1] = Array(size).fill(false);
+        }
+        break;
+      case 'down':
+        if (wrapAround) {
+          const lastRow = newPattern[size - 1];
+          for (let i = size - 1; i > 0; i--) {
+            newPattern[i] = newPattern[i - 1];
+          }
+          newPattern[0] = lastRow;
+        } else {
+          for (let i = size - 1; i > 0; i--) {
+            newPattern[i] = newPattern[i - 1];
+          }
+          newPattern[0] = Array(size).fill(false);
+        }
+        break;
+      case 'left':
+        for (let i = 0; i < size; i++) {
+          if (wrapAround) {
+            const first = newPattern[i][0];
+            for (let j = 0; j < size - 1; j++) {
+              newPattern[i][j] = newPattern[i][j + 1];
+            }
+            newPattern[i][size - 1] = first;
+          } else {
+            for (let j = 0; j < size - 1; j++) {
+              newPattern[i][j] = newPattern[i][j + 1];
+            }
+            newPattern[i][size - 1] = false;
+          }
+        }
+        break;
+      case 'right':
+        for (let i = 0; i < size; i++) {
+          if (wrapAround) {
+            const last = newPattern[i][size - 1];
+            for (let j = size - 1; j > 0; j--) {
+              newPattern[i][j] = newPattern[i][j - 1];
+            }
+            newPattern[i][0] = last;
+          } else {
+            for (let j = size - 1; j > 0; j--) {
+              newPattern[i][j] = newPattern[i][j - 1];
+            }
+            newPattern[i][0] = false;
+          }
+        }
+        break;
+    }
+
+    onPatternChange(newPattern);
+  }, [pattern, onPatternChange, wrapAround]);
+
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsDragging(false);
     };
 
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only handle if alt/option key is pressed
+      if (e.altKey) {
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            shiftPattern('up');
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            shiftPattern('down');
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            shiftPattern('left');
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            shiftPattern('right');
+            break;
+        }
+      }
+    };
+
     window.addEventListener('mouseup', handleGlobalMouseUp);
     window.addEventListener('touchend', handleGlobalMouseUp);
+    window.addEventListener('keydown', handleKeyPress);
 
     return () => {
       window.removeEventListener('mouseup', handleGlobalMouseUp);
       window.removeEventListener('touchend', handleGlobalMouseUp);
+      window.removeEventListener('keydown', handleKeyPress);
     };
-  }, []);
+  }, [shiftPattern]);
 
   const pixelSize = Math.min(48, Math.floor(320 / fixedGridSize));
 
   return (
     <div className="flex flex-col items-center space-y-6">
-      {/* Grid Canvas */}
+      {/* Grid Canvas with controls */}
       <div className="relative">
+        {/* Shift Controls */}
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+          <button
+            onClick={() => shiftPattern('up')}
+            className="p-2 rounded-lg bg-background border border-border/50 hover:bg-accent hover:border-accent transition-all duration-200 shadow-sm group"
+            title="Shift up"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground group-hover:text-foreground transition-colors">
+              <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
+          <button
+            onClick={() => shiftPattern('down')}
+            className="p-2 rounded-lg bg-background border border-border/50 hover:bg-accent hover:border-accent transition-all duration-200 shadow-sm group"
+            title="Shift down"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground group-hover:text-foreground transition-colors">
+              <path d="M8 4v8m4-4l-4 4-4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div className="absolute top-1/2 -left-12 -translate-y-1/2">
+          <button
+            onClick={() => shiftPattern('left')}
+            className="p-2 rounded-lg bg-background border border-border/50 hover:bg-accent hover:border-accent transition-all duration-200 shadow-sm group"
+            title="Shift left"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground group-hover:text-foreground transition-colors">
+              <path d="M12 8H4m4 4L4 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div className="absolute top-1/2 -right-12 -translate-y-1/2">
+          <button
+            onClick={() => shiftPattern('right')}
+            className="p-2 rounded-lg bg-background border border-border/50 hover:bg-accent hover:border-accent transition-all duration-200 shadow-sm group"
+            title="Shift right"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground group-hover:text-foreground transition-colors">
+              <path d="M4 8h8m-4-4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
         {/* Canvas background with subtle gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent rounded-2xl" />
         <div 
@@ -127,6 +269,26 @@ export function EditorCanvas({ pattern, onPatternChange, previousPattern, showPr
               );
             })
           )}
+        </div>
+        
+        {/* Wrap toggle in top-right */}
+        <div className="absolute -top-12 -right-12">
+          <button
+            onClick={() => setWrapAround(!wrapAround)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+              wrapAround
+                ? 'bg-primary/10 text-primary border border-primary/20'
+                : 'bg-background/50 text-muted-foreground border border-border/50 hover:bg-accent hover:border-accent'
+            }`}
+            title={wrapAround ? 'Wrap enabled' : 'Wrap disabled'}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M9 4l3 3-3 3M5 10L2 7l3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity={wrapAround ? 1 : 0.5}/>
+              <circle cx="12" cy="7" r="1" fill="currentColor" opacity={wrapAround ? 1 : 0}/>
+              <circle cx="2" cy="7" r="1" fill="currentColor" opacity={wrapAround ? 1 : 0}/>
+            </svg>
+            <span>Wrap</span>
+          </button>
         </div>
       </div>
       

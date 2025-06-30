@@ -114,6 +114,19 @@ export function ToolPanel({ onClear, onFill, onInvert }: ToolPanelProps) {
               <kbd className="px-2 py-1 bg-muted/50 rounded text-xs font-mono border border-border/50">→</kbd>
             </div>
           </div>
+          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-background/50 border border-border/30">
+            <span className="text-sm flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-muted-foreground">
+                <path d="M7 2L10 7L7 12M2 7h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Shift Pixels
+            </span>
+            <div className="flex gap-1 items-center">
+              <kbd className="px-1.5 py-1 bg-muted/50 rounded text-xs font-mono border border-border/50">Alt</kbd>
+              <span className="text-xs text-muted-foreground">+</span>
+              <kbd className="px-1.5 py-1 bg-muted/50 rounded text-xs font-mono border border-border/50">↑↓←→</kbd>
+            </div>
+          </div>
         </div>
       </div>
     </div>

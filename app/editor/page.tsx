@@ -278,7 +278,7 @@ export default function EditorPage() {
                   </button>
                 )}
               </div>
-              <div className="p-4">
+              <div className="p-8">
                 <EditorCanvas
                   pattern={currentPattern}
                   onPatternChange={updatePattern}
