@@ -1,73 +1,76 @@
-'use client';
+'use client'
 
-import { MorsePixelGrid } from '@/components/MorsePixelGrid/MorsePixelGrid';
-import { patternPresets } from '@/lib/patterns/presets';
-import { 
-  createCirclePattern, 
-  createCrossPattern, 
+import { MorsePixelGrid } from '@/components/MorsePixelGrid/MorsePixelGrid'
+import { patternPresets } from '@/lib/patterns/presets'
+import {
+  createCirclePattern,
+  createCrossPattern,
   createHeartPattern,
   createCheckerboardPattern,
   createSpiralPattern,
   createDiagonalPattern,
   createRingPattern,
-  createWavePattern
-} from '@/lib/patterns/generators';
-import type { Pattern } from '@/lib/types';
+  createWavePattern,
+} from '@/lib/patterns/generators'
+import type { Pattern } from '@/lib/types'
 
 interface PatternLibraryProps {
-  onSelectPattern: (patterns: Pattern[]) => void;
-  onClose: () => void;
+  onSelectPattern: (patterns: Pattern[]) => void
+  onClose: () => void
 }
 
 interface StaticPattern {
-  name: string;
-  description: string;
-  pattern: Pattern;
+  name: string
+  description: string
+  pattern: Pattern
 }
 
-export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps) {
+export function PatternLibrary({
+  onSelectPattern,
+  onClose,
+}: PatternLibraryProps) {
   const staticPatterns: StaticPattern[] = [
     {
       name: 'Circle',
       description: 'Perfect circle shape',
-      pattern: createCirclePattern(6)
+      pattern: createCirclePattern(5),
     },
     {
       name: 'Cross',
       description: 'Plus sign pattern',
-      pattern: createCrossPattern(6)
+      pattern: createCrossPattern(5),
     },
     {
       name: 'Heart',
       description: 'Heart shape',
-      pattern: createHeartPattern(6)
+      pattern: createHeartPattern(5),
     },
     {
       name: 'Checkerboard',
       description: 'Alternating squares',
-      pattern: createCheckerboardPattern(6)
+      pattern: createCheckerboardPattern(5),
     },
     {
       name: 'Spiral',
       description: 'Spiral pattern',
-      pattern: createSpiralPattern(6)
+      pattern: createSpiralPattern(5),
     },
     {
       name: 'Diagonal',
       description: 'Diagonal line',
-      pattern: createDiagonalPattern(6)
+      pattern: createDiagonalPattern(5),
     },
     {
       name: 'Ring',
       description: 'Ring shape',
-      pattern: createRingPattern(6)
+      pattern: createRingPattern(5),
     },
     {
       name: 'Wave',
       description: 'Wave pattern',
-      pattern: createWavePattern(6)
-    }
-  ];
+      pattern: createWavePattern(5),
+    },
+  ]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -76,15 +79,28 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Pattern Library</h2>
-              <p className="text-sm text-muted-foreground mt-1">Choose from presets or start with a basic shape</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Choose from presets or start with a basic shape
+              </p>
             </div>
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-accent transition-all duration-200 group"
               aria-label="Close"
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-muted-foreground group-hover:text-foreground transition-colors">
-                <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                className="text-muted-foreground group-hover:text-foreground transition-colors"
+              >
+                <path
+                  d="M15 5L5 15M5 5l10 10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
           </div>
@@ -96,13 +112,27 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
             <div className="mb-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-primary">
-                    <path d="M4 3l5 5-5 5M9 8h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    className="text-primary"
+                  >
+                    <path
+                      d="M4 3l5 5-5 5M9 8h4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
                 Animated Presets
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">Pre-built animations ready to use</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pre-built animations ready to use
+              </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {patternPresets.map((preset) => (
@@ -121,24 +151,76 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
                         active={true}
                         pixelSize="sm"
                         iterations="infinite"
+                        gridSize={5}
                       />
                     </div>
-                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{preset.name}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">{preset.description}</p>
+                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {preset.name}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {preset.description}
+                    </p>
                     <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <rect x="2" y="2" width="3" height="3" fill="currentColor"/>
-                          <rect x="7" y="2" width="3" height="3" fill="currentColor" opacity="0.5"/>
-                          <rect x="2" y="7" width="3" height="3" fill="currentColor" opacity="0.5"/>
-                          <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <rect
+                            x="2"
+                            y="2"
+                            width="3"
+                            height="3"
+                            fill="currentColor"
+                          />
+                          <rect
+                            x="7"
+                            y="2"
+                            width="3"
+                            height="3"
+                            fill="currentColor"
+                            opacity="0.5"
+                          />
+                          <rect
+                            x="2"
+                            y="7"
+                            width="3"
+                            height="3"
+                            fill="currentColor"
+                            opacity="0.5"
+                          />
+                          <rect
+                            x="7"
+                            y="7"
+                            width="3"
+                            height="3"
+                            fill="currentColor"
+                          />
                         </svg>
                         {preset.frames.length} frames
                       </span>
                       <span className="flex items-center gap-1">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1"/>
-                          <path d="M6 3v3l2 1" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <circle
+                            cx="6"
+                            cy="6"
+                            r="4"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                          />
+                          <path
+                            d="M6 3v3l2 1"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            strokeLinecap="round"
+                          />
                         </svg>
                         {preset.tempo}ms
                       </span>
@@ -154,16 +236,48 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
             <div className="mb-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground">
-                    <rect x="3" y="3" width="4" height="4" fill="currentColor"/>
-                    <rect x="9" y="3" width="4" height="4" fill="currentColor"/>
-                    <rect x="3" y="9" width="4" height="4" fill="currentColor"/>
-                    <rect x="9" y="9" width="4" height="4" fill="currentColor"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    className="text-muted-foreground"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="4"
+                      height="4"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="9"
+                      y="3"
+                      width="4"
+                      height="4"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="3"
+                      y="9"
+                      width="4"
+                      height="4"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="9"
+                      y="9"
+                      width="4"
+                      height="4"
+                      fill="currentColor"
+                    />
                   </svg>
                 </div>
                 Static Patterns
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">Basic shapes to start your design</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Basic shapes to start your design
+              </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {staticPatterns.map((pattern) => (
@@ -180,8 +294,12 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
                       active={true}
                     />
                   </div>
-                  <h4 className="text-sm font-medium group-hover:text-primary transition-colors">{pattern.name}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">{pattern.description}</p>
+                  <h4 className="text-sm font-medium group-hover:text-primary transition-colors">
+                    {pattern.name}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {pattern.description}
+                  </p>
                 </button>
               ))}
             </div>
@@ -190,33 +308,56 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
           {/* Tips */}
           <div className="p-4 bg-gradient-to-b from-muted/50 to-muted/30 rounded-xl border">
             <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-primary">
-                <path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M8 11V8M8 5h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                className="text-primary"
+              >
+                <path
+                  d="M8 2a6 6 0 100 12A6 6 0 008 2z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M8 11V8M8 5h.01"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
               </svg>
               Pro Tips
             </h4>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <div className="flex gap-3">
                 <span className="text-primary mt-0.5">•</span>
-                <p className="text-muted-foreground">Select any pattern to load it into the editor</p>
+                <p className="text-muted-foreground">
+                  Select any pattern to load it into the editor
+                </p>
               </div>
               <div className="flex gap-3">
                 <span className="text-primary mt-0.5">•</span>
-                <p className="text-muted-foreground">Animated presets will load all frames</p>
+                <p className="text-muted-foreground">
+                  Animated presets will load all frames
+                </p>
               </div>
               <div className="flex gap-3">
                 <span className="text-primary mt-0.5">•</span>
-                <p className="text-muted-foreground">You can modify patterns after loading</p>
+                <p className="text-muted-foreground">
+                  You can modify patterns after loading
+                </p>
               </div>
               <div className="flex gap-3">
                 <span className="text-primary mt-0.5">•</span>
-                <p className="text-muted-foreground">Combine multiple patterns for complex animations</p>
+                <p className="text-muted-foreground">
+                  Combine multiple patterns for complex animations
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

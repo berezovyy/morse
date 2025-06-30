@@ -16,7 +16,7 @@ export function EditorCanvas({ pattern, onPatternChange, previousPattern, showPr
   const [dragValue, setDragValue] = useState(true);
   const [wrapAround, setWrapAround] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const fixedGridSize = 6; // Always use 6x6 grid
+  const fixedGridSize = 5; // Always use 5x5 grid
 
   const togglePixel = useCallback((row: number, col: number, forceValue?: boolean) => {
     const newPattern = pattern.map((r, rIdx) =>

@@ -26,21 +26,26 @@ export function FrameTimeline({
   onDuplicateFrame,
   onNavigate,
 }: FrameTimelineProps) {
-  const maxFrames = 10;
-
   return (
     <div className="bg-card/50 backdrop-blur rounded-xl border overflow-hidden">
       <div className="border-b bg-muted/30 px-4 py-2.5 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Timeline</h3>
-        <span className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md bg-background/50 border">
-          <span className="text-primary">{currentFrame + 1}</span>
-          <span className="text-muted-foreground">of</span>
-          <span>{frames.length}</span>
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md bg-background/50 border">
+            <span className="text-primary">{currentFrame + 1}</span>
+            <span className="text-muted-foreground">of</span>
+            <span>{frames.length}</span>
+          </span>
+          {frames.length > 5 && (
+            <span className="text-xs text-muted-foreground">
+              Scroll for more →
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           {/* Previous Button */}
           <button
             onClick={() => onNavigate('prev')}
@@ -54,7 +59,10 @@ export function FrameTimeline({
           </button>
 
           {/* Frames */}
-          <div className="flex-1 flex gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+          <div className="flex-1 flex gap-2 overflow-x-auto py-1 px-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent scroll-smooth" style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'hsl(var(--border)) transparent'
+          }}>
             {frames.map((frame, index) => (
               <div key={`frame-${index}-${JSON.stringify(frame.pattern).substring(0, 20)}`} className="relative group flex-shrink-0">
                 <button
@@ -67,9 +75,9 @@ export function FrameTimeline({
                   aria-label={`Frame ${index + 1}`}
                 >
                   {/* Mini Grid Preview */}
-                  <div className="absolute inset-1.5 grid grid-cols-6 grid-rows-6 gap-[1px]">
-                    {frame.pattern.map((row, rowIdx) =>
-                      row.map((isActive, colIdx) => (
+                  <div className="absolute inset-1.5 grid grid-cols-5 grid-rows-5 gap-[1px]">
+                    {frame.pattern.slice(0, 5).map((row, rowIdx) =>
+                      row.slice(0, 5).map((isActive, colIdx) => (
                         <div
                           key={`${rowIdx}-${colIdx}-${index}`}
                           className={`rounded-[1px] transition-colors ${
@@ -122,17 +130,15 @@ export function FrameTimeline({
             ))}
             
             {/* Add Frame Button */}
-            {frames.length < maxFrames && (
-              <button
-                onClick={onAddFrame}
-                className="w-16 h-16 rounded-lg border-2 border-dashed border-border/50 hover:border-primary/50 transition-all duration-200 flex items-center justify-center text-muted-foreground hover:text-primary bg-background/30 hover:bg-primary/5 group flex-shrink-0"
-                aria-label="Add frame"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="group-hover:scale-110 transition-transform">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
-            )}
+            <button
+              onClick={onAddFrame}
+              className="w-16 h-16 rounded-lg border-2 border-dashed border-border/50 hover:border-primary/50 transition-all duration-200 flex items-center justify-center text-muted-foreground hover:text-primary bg-background/30 hover:bg-primary/5 group flex-shrink-0"
+              aria-label="Add frame"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="group-hover:scale-110 transition-transform">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
           </div>
 
           {/* Next Button */}
@@ -147,14 +153,6 @@ export function FrameTimeline({
             </svg>
           </button>
         </div>
-
-        {frames.length >= maxFrames && (
-          <div className="mt-2 mx-3 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-md">
-            <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
-              Max {maxFrames} frames
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

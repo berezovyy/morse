@@ -1,6 +1,6 @@
 export const GRID_SIZES = {
-  SMALL: 5,
-  DEFAULT: 6,
+  SMALL: 4,
+  DEFAULT: 5,
   LARGE: 9,
 } as const
 
