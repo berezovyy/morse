@@ -7,9 +7,11 @@ interface EditorCanvasProps {
   pattern: Pattern;
   onPatternChange: (pattern: Pattern) => void;
   gridSize: number;
+  previousPattern?: Pattern;
+  showPreviousFrame?: boolean;
 }
 
-export function EditorCanvas({ pattern, onPatternChange, gridSize }: EditorCanvasProps) {
+export function EditorCanvas({ pattern, onPatternChange, previousPattern, showPreviousFrame = true }: EditorCanvasProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragValue, setDragValue] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -40,9 +42,6 @@ export function EditorCanvas({ pattern, onPatternChange, gridSize }: EditorCanva
     }
   }, [isDragging, dragValue, togglePixel]);
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent, row: number, col: number) => {
     e.preventDefault();
@@ -94,33 +93,45 @@ export function EditorCanvas({ pattern, onPatternChange, gridSize }: EditorCanva
           }}
         >
           {pattern.map((row, rowIdx) =>
-            row.map((isActive, colIdx) => (
-              <button
-                key={`${rowIdx}-${colIdx}`}
-                data-row={rowIdx}
-                data-col={colIdx}
-                className={`editor-pixel rounded-lg transition-all duration-200 transform-gpu ${
-                  isActive 
-                    ? 'bg-primary shadow-lg scale-[0.95] ring-2 ring-primary/30' 
-                    : 'bg-muted/50 hover:bg-muted hover:scale-105 border border-border/50 hover:border-border shadow-sm'
-                }`}
-                style={{
-                  width: pixelSize,
-                  height: pixelSize,
-                }}
-                onMouseDown={() => handleMouseDown(rowIdx, colIdx)}
-                onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
-                onTouchStart={(e) => handleTouchStart(e, rowIdx, colIdx)}
-                onTouchMove={handleTouchMove}
-                aria-label={`Pixel ${rowIdx + 1},${colIdx + 1} ${isActive ? 'on' : 'off'}`}
-              />
-            ))
+            row.map((isActive, colIdx) => {
+              const isPreviousActive = showPreviousFrame && previousPattern?.[rowIdx]?.[colIdx];
+              return (
+                <button
+                  key={`${rowIdx}-${colIdx}`}
+                  data-row={rowIdx}
+                  data-col={colIdx}
+                  className={`editor-pixel rounded-lg transition-all duration-200 transform-gpu relative overflow-hidden ${
+                    isActive 
+                      ? 'bg-primary shadow-lg scale-[0.95] ring-2 ring-primary/30' 
+                      : isPreviousActive
+                        ? 'bg-muted/80 hover:bg-muted hover:scale-105 border border-primary/20 hover:border-primary/30 shadow-sm'
+                        : 'bg-muted/50 hover:bg-muted hover:scale-105 border border-border/50 hover:border-border shadow-sm'
+                  }`}
+                  style={{
+                    width: pixelSize,
+                    height: pixelSize,
+                  }}
+                  onMouseDown={() => handleMouseDown(rowIdx, colIdx)}
+                  onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
+                  onTouchStart={(e) => handleTouchStart(e, rowIdx, colIdx)}
+                  onTouchMove={handleTouchMove}
+                  aria-label={`Pixel ${rowIdx + 1},${colIdx + 1} ${isActive ? 'on' : 'off'}${isPreviousActive ? ' (was on)' : ''}`}
+                >
+                  {/* Ghost indicator for previous frame */}
+                  {isPreviousActive && !isActive && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-2 h-2 rounded-full bg-primary/30" />
+                    </div>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </div>
       
       {/* Instructions Card */}
-      <div className="flex items-center gap-6 px-4 py-2 bg-muted/30 rounded-full border border-border/50">
+      <div className="flex items-center gap-4 px-4 py-2 bg-muted/30 rounded-full border border-border/50">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-md bg-primary shadow-sm ring-1 ring-primary/30" />
           <span className="text-xs font-medium">Active</span>
@@ -130,6 +141,19 @@ export function EditorCanvas({ pattern, onPatternChange, gridSize }: EditorCanva
           <div className="w-3 h-3 rounded-md bg-muted/50 border border-border/50 shadow-sm" />
           <span className="text-xs font-medium">Inactive</span>
         </div>
+        {showPreviousFrame && previousPattern && (
+          <>
+            <div className="w-px h-4 bg-border/50" />
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-md bg-muted/80 border border-primary/20 shadow-sm relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-1 h-1 rounded-full bg-primary/30" />
+                </div>
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">Previous</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

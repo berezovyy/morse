@@ -116,10 +116,11 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
                     <div className="flex justify-center mb-4 p-4 bg-background/50 rounded-xl">
                       <MorsePixelGrid
                         patterns={preset.frames}
-                        animationType="fade"
+                        animationPreset="fade"
                         tempo={preset.tempo}
-                        loop={true}
+                        active={true}
                         pixelSize="sm"
+                        iterations="infinite"
                       />
                     </div>
                     <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{preset.name}</h4>
@@ -173,9 +174,10 @@ export function PatternLibrary({ onSelectPattern, onClose }: PatternLibraryProps
                 >
                   <div className="flex justify-center mb-3 p-3 bg-muted/30 rounded-lg group-hover:bg-muted/50 transition-colors">
                     <MorsePixelGrid
-                      pattern={pattern.pattern}
-                      animationType="fade"
+                      patterns={[pattern.pattern]}
+                      animationPreset="fade"
                       pixelSize="xs"
+                      active={true}
                     />
                   </div>
                   <h4 className="text-sm font-medium group-hover:text-primary transition-colors">{pattern.name}</h4>
