@@ -50,7 +50,7 @@ export default function EditorPage() {
       ...prev,
       frames: prev.frames.map((frame, idx) => 
         idx === prev.currentFrame 
-          ? { ...frame, pattern }
+          ? { ...frame, pattern: pattern.map(row => [...row]) }
           : frame
       )
     }));
@@ -387,6 +387,7 @@ export default function EditorPage() {
                   <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
                   <div className="relative bg-background/50 p-4 rounded-2xl border border-border/50 shadow-lg">
                     <MorsePixelGrid
+                      key={`preview-${JSON.stringify(state.frames.map(f => f.pattern)).substring(0, 50)}`}
                       patterns={state.frames.map(f => f.pattern)}
                       animationPreset="fade"
                       tempo={state.animationSpeed}

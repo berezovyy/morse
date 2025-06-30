@@ -56,7 +56,7 @@ export function FrameTimeline({
           {/* Frames */}
           <div className="flex-1 flex gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
             {frames.map((frame, index) => (
-              <div key={index} className="relative group flex-shrink-0">
+              <div key={`frame-${index}-${JSON.stringify(frame.pattern).substring(0, 20)}`} className="relative group flex-shrink-0">
                 <button
                   onClick={() => onFrameSelect(index)}
                   className={`relative w-16 h-16 rounded-lg border-2 transition-all duration-200 overflow-hidden ${
@@ -67,12 +67,12 @@ export function FrameTimeline({
                   aria-label={`Frame ${index + 1}`}
                 >
                   {/* Mini Grid Preview */}
-                  <div className="absolute inset-1.5 grid grid-cols-3 grid-rows-3 gap-0.5">
-                    {frame.pattern.slice(0, 3).map((row, rowIdx) =>
-                      row.slice(0, 3).map((isActive, colIdx) => (
+                  <div className="absolute inset-1.5 grid grid-cols-6 grid-rows-6 gap-[1px]">
+                    {frame.pattern.map((row, rowIdx) =>
+                      row.map((isActive, colIdx) => (
                         <div
-                          key={`${rowIdx}-${colIdx}`}
-                          className={`rounded-sm transition-colors ${
+                          key={`${rowIdx}-${colIdx}-${index}`}
+                          className={`rounded-[1px] transition-colors ${
                             isActive 
                               ? index === currentFrame ? 'bg-primary' : 'bg-primary/60'
                               : 'bg-muted-foreground/20'
