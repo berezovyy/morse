@@ -12,6 +12,7 @@ import {
 } from './constants'
 import { CodeExample } from './components/CodeExample'
 import { PatternSelector } from './components/PatternSelector'
+import { PatternEditor } from '@/components/PatternEditor'
 
 export default function MorseDemoPage() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
@@ -115,6 +116,12 @@ export default function MorseDemoPage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 border-t">
+        <div className="max-w-7xl mx-auto">
+          <PatternEditor />
         </div>
       </section>
 
