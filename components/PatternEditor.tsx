@@ -1,195 +1,223 @@
-'use client';
+'use client'
 
-import { useState, useCallback, useEffect } from 'react';
-import { EditorCanvas } from '@/components/editor/EditorCanvas';
-import { FrameTimeline } from '@/components/editor/FrameTimeline';
-import { ToolPanel } from '@/components/editor/ToolPanel';
-import { ExportModal } from '@/components/editor/ExportModal';
-import { PatternLibrary } from '@/components/editor/PatternLibrary';
-import { MorsePixelGrid } from '@/components/MorsePixelGrid/MorsePixelGrid';
-import type { Pattern } from '@/lib/types';
+import { useState, useCallback, useEffect } from 'react'
+import { EditorCanvas } from '@/components/editor/EditorCanvas'
+import { FrameTimeline } from '@/components/editor/FrameTimeline'
+import { ToolPanel } from '@/components/editor/ToolPanel'
+import { ExportModal } from '@/components/editor/ExportModal'
+import { PatternLibrary } from '@/components/editor/PatternLibrary'
+import { MorsePixelGrid } from '@/components/MorsePixelGrid/MorsePixelGrid'
+import type { Pattern } from '@/lib/types'
 
 interface EditorFrame {
-  pattern: Pattern;
-  duration: number;
+  pattern: Pattern
+  duration: number
 }
 
 interface EditorState {
-  frames: EditorFrame[];
-  currentFrame: number;
-  isPlaying: boolean;
-  animationSpeed: number;
+  frames: EditorFrame[]
+  currentFrame: number
+  isPlaying: boolean
+  animationSpeed: number
 }
 
 const createEmptyPattern = (size: number): Pattern => {
-  return Array(size).fill(null).map(() => Array(size).fill(false));
-};
+  return Array(size)
+    .fill(null)
+    .map(() => Array(size).fill(false))
+}
 
 export function PatternEditor() {
-  const gridSize = 5; // Fixed 5x5 grid
+  const gridSize = 5 // Fixed 5x5 grid
   const [state, setState] = useState<EditorState>({
-    frames: [{
-      pattern: createEmptyPattern(gridSize),
-      duration: 500
-    }],
+    frames: [
+      {
+        pattern: createEmptyPattern(gridSize),
+        duration: 500,
+      },
+    ],
     currentFrame: 0,
     isPlaying: false,
-    animationSpeed: 500
-  });
-  
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [showPatternLibrary, setShowPatternLibrary] = useState(false);
-  const [showPreviousFrame, setShowPreviousFrame] = useState(true);
+    animationSpeed: 500,
+  })
 
-  const currentPattern = state.frames[state.currentFrame]?.pattern || createEmptyPattern(gridSize);
-  const previousPattern = state.currentFrame > 0 ? state.frames[state.currentFrame - 1]?.pattern : undefined;
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [showPatternLibrary, setShowPatternLibrary] = useState(false)
+  const [showPreviousFrame, setShowPreviousFrame] = useState(true)
+
+  const currentPattern =
+    state.frames[state.currentFrame]?.pattern || createEmptyPattern(gridSize)
+  const previousPattern =
+    state.currentFrame > 0
+      ? state.frames[state.currentFrame - 1]?.pattern
+      : undefined
 
   const updatePattern = useCallback((pattern: Pattern) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      frames: prev.frames.map((frame, idx) => 
-        idx === prev.currentFrame 
-          ? { ...frame, pattern: pattern.map(row => [...row]) }
+      frames: prev.frames.map((frame, idx) =>
+        idx === prev.currentFrame
+          ? { ...frame, pattern: pattern.map((row) => [...row]) }
           : frame
-      )
-    }));
-  }, []);
+      ),
+    }))
+  }, [])
 
   const addFrame = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      frames: [...prev.frames, { 
-        pattern: createEmptyPattern(gridSize), 
-        duration: prev.animationSpeed 
-      }],
-      currentFrame: prev.frames.length
-    }));
-  }, [gridSize]);
+      frames: [
+        ...prev.frames,
+        {
+          pattern: createEmptyPattern(gridSize),
+          duration: prev.animationSpeed,
+        },
+      ],
+      currentFrame: prev.frames.length,
+    }))
+  }, [gridSize])
 
   const removeFrame = useCallback((index: number) => {
-    setState(prev => {
-      if (prev.frames.length <= 1) return prev;
-      const newFrames = prev.frames.filter((_, i) => i !== index);
+    setState((prev) => {
+      if (prev.frames.length <= 1) return prev
+      const newFrames = prev.frames.filter((_, i) => i !== index)
       return {
         ...prev,
         frames: newFrames,
-        currentFrame: Math.min(prev.currentFrame, newFrames.length - 1)
-      };
-    });
-  }, []);
+        currentFrame: Math.min(prev.currentFrame, newFrames.length - 1),
+      }
+    })
+  }, [])
 
   const duplicateFrame = useCallback((index: number) => {
-    setState(prev => {
-      const frameToDuplicate = prev.frames[index];
+    setState((prev) => {
+      const frameToDuplicate = prev.frames[index]
       const newFrames = [
         ...prev.frames.slice(0, index + 1),
-        { ...frameToDuplicate, pattern: frameToDuplicate.pattern.map(row => [...row]) },
-        ...prev.frames.slice(index + 1)
-      ];
+        {
+          ...frameToDuplicate,
+          pattern: frameToDuplicate.pattern.map((row) => [...row]),
+        },
+        ...prev.frames.slice(index + 1),
+      ]
       return {
         ...prev,
         frames: newFrames,
-        currentFrame: index + 1
-      };
-    });
-  }, []);
+        currentFrame: index + 1,
+      }
+    })
+  }, [])
 
   const navigateFrame = useCallback((direction: 'prev' | 'next') => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      currentFrame: direction === 'prev' 
-        ? Math.max(0, prev.currentFrame - 1)
-        : Math.min(prev.frames.length - 1, prev.currentFrame + 1)
-    }));
-  }, []);
+      currentFrame:
+        direction === 'prev'
+          ? Math.max(0, prev.currentFrame - 1)
+          : Math.min(prev.frames.length - 1, prev.currentFrame + 1),
+    }))
+  }, [])
 
   const setCurrentFrame = useCallback((index: number) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      currentFrame: index
-    }));
-  }, []);
+      currentFrame: index,
+    }))
+  }, [])
 
   const togglePlay = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      isPlaying: !prev.isPlaying
-    }));
-  }, []);
+      isPlaying: !prev.isPlaying,
+    }))
+  }, [])
 
   const setAnimationSpeed = useCallback((speed: number) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       animationSpeed: speed,
-      frames: prev.frames.map(frame => ({
+      frames: prev.frames.map((frame) => ({
         ...frame,
-        duration: speed
-      }))
-    }));
-  }, []);
+        duration: speed,
+      })),
+    }))
+  }, [])
 
   const clearPattern = useCallback(() => {
-    updatePattern(createEmptyPattern(gridSize));
-  }, [gridSize, updatePattern]);
+    updatePattern(createEmptyPattern(gridSize))
+  }, [gridSize, updatePattern])
 
   const fillPattern = useCallback(() => {
-    updatePattern(Array(gridSize).fill(null).map(() => Array(gridSize).fill(true)));
-  }, [gridSize, updatePattern]);
+    updatePattern(
+      Array(gridSize)
+        .fill(null)
+        .map(() => Array(gridSize).fill(true))
+    )
+  }, [gridSize, updatePattern])
 
   const invertPattern = useCallback(() => {
-    updatePattern(currentPattern.map(row => row.map(cell => !cell)));
-  }, [currentPattern, updatePattern]);
+    updatePattern(currentPattern.map((row) => row.map((cell) => !cell)))
+  }, [currentPattern, updatePattern])
 
   const loadPattern = useCallback((patterns: Pattern[]) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      frames: patterns.map(pattern => ({
+      frames: patterns.map((pattern) => ({
         pattern,
-        duration: prev.animationSpeed
+        duration: prev.animationSpeed,
       })),
-      currentFrame: 0
-    }));
-    setShowPatternLibrary(false);
-  }, []);
+      currentFrame: 0,
+    }))
+    setShowPatternLibrary(false)
+  }, [])
 
   useEffect(() => {
-    const savedState = localStorage.getItem('morse-editor-state');
+    const savedState = localStorage.getItem('morse-editor-state')
     if (savedState) {
       try {
-        const parsed = JSON.parse(savedState);
-        setState(parsed);
+        const parsed = JSON.parse(savedState)
+        setState(parsed)
       } catch (e) {
-        console.error('Failed to load saved state:', e);
+        console.error('Failed to load saved state:', e)
       }
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const saveTimeout = setTimeout(() => {
-      localStorage.setItem('morse-editor-state', JSON.stringify(state));
-    }, 2000);
-    return () => clearTimeout(saveTimeout);
-  }, [state]);
+      localStorage.setItem('morse-editor-state', JSON.stringify(state))
+    }, 2000)
+    return () => clearTimeout(saveTimeout)
+  }, [state])
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === ' ' && e.target === document.body) {
-        e.preventDefault();
-        togglePlay();
+        e.preventDefault()
+        togglePlay()
       } else if (e.key === 'ArrowLeft') {
-        navigateFrame('prev');
+        navigateFrame('prev')
       } else if (e.key === 'ArrowRight') {
-        navigateFrame('next');
+        navigateFrame('next')
       } else if (e.ctrlKey || e.metaKey) {
         if (e.key === 'z') {
-          e.preventDefault();
+          e.preventDefault()
         }
+      } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        clearPattern()
+      } else if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        fillPattern()
+      } else if (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        invertPattern()
       }
-    };
+    }
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [togglePlay, navigateFrame]);
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [togglePlay, navigateFrame, clearPattern, fillPattern, invertPattern])
 
   return (
     <div className="relative">
@@ -197,7 +225,9 @@ export function PatternEditor() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-3xl font-bold mb-2">Pattern Editor</h2>
-          <p className="text-muted-foreground">Create custom animations for your Morse components</p>
+          <p className="text-muted-foreground">
+            Create custom animations for your Morse components
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <button
@@ -216,9 +246,9 @@ export function PatternEditor() {
       </div>
 
       {/* Main Editor */}
-      <div className="grid gap-4 lg:grid-cols-[1fr,280px]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr),280px]">
         {/* Left Column - Main Editor */}
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0">
           {/* Canvas Card */}
           <div className="bg-card/50 backdrop-blur rounded-xl border overflow-hidden">
             <div className="border-b bg-muted/30 px-4 py-2.5 flex items-center justify-between">
@@ -231,11 +261,38 @@ export function PatternEditor() {
                       ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'bg-background/50 text-muted-foreground border border-border/50 hover:bg-accent hover:border-accent'
                   }`}
-                  title={showPreviousFrame ? 'Hide previous frame' : 'Show previous frame'}
+                  title={
+                    showPreviousFrame
+                      ? 'Hide previous frame'
+                      : 'Show previous frame'
+                  }
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="transition-opacity">
-                    <rect x="1" y="1" width="5" height="5" stroke="currentColor" strokeWidth="1" opacity="0.4" rx="0.5"/>
-                    <rect x="5" y="5" width="5" height="5" stroke="currentColor" strokeWidth="1" rx="0.5"/>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    className="transition-opacity"
+                  >
+                    <rect
+                      x="1"
+                      y="1"
+                      width="5"
+                      height="5"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      opacity="0.4"
+                      rx="0.5"
+                    />
+                    <rect
+                      x="5"
+                      y="5"
+                      width="5"
+                      height="5"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      rx="0.5"
+                    />
                   </svg>
                   <span>{showPreviousFrame ? 'Ghost On' : 'Ghost Off'}</span>
                 </button>
@@ -280,15 +337,39 @@ export function PatternEditor() {
                 >
                   {state.isPlaying ? (
                     <>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <rect x="4" y="3" width="2" height="8" fill="currentColor" rx="0.5" />
-                        <rect x="8" y="3" width="2" height="8" fill="currentColor" rx="0.5" />
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                      >
+                        <rect
+                          x="4"
+                          y="3"
+                          width="2"
+                          height="8"
+                          fill="currentColor"
+                          rx="0.5"
+                        />
+                        <rect
+                          x="8"
+                          y="3"
+                          width="2"
+                          height="8"
+                          fill="currentColor"
+                          rx="0.5"
+                        />
                       </svg>
                       <span>Pause</span>
                     </>
                   ) : (
                     <>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                      >
                         <path d="M4.5 3v8l6-4-6-4z" fill="currentColor" />
                       </svg>
                       <span>Play</span>
@@ -296,22 +377,58 @@ export function PatternEditor() {
                   )}
                 </button>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-lg">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-muted-foreground">
-                    <circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M6 3v3l2 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    className="text-muted-foreground"
+                  >
+                    <circle
+                      cx="6"
+                      cy="6"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M6 3v3l2 1"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <span className="text-xs font-medium">{state.animationSpeed}ms</span>
+                  <span className="text-xs font-medium">
+                    {state.animationSpeed}ms
+                  </span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="speed" className="text-sm font-medium flex items-center gap-2">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-muted-foreground">
-                      <path d="M7 2L10 7L7 12M2 7h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <label
+                    htmlFor="speed"
+                    className="text-sm font-medium flex items-center gap-2"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      className="text-muted-foreground"
+                    >
+                      <path
+                        d="M7 2L10 7L7 12M2 7h8"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     Animation Speed
                   </label>
-                  <span className="text-xs text-muted-foreground">100ms - 2s</span>
+                  <span className="text-xs text-muted-foreground">
+                    100ms - 2s
+                  </span>
                 </div>
                 <div className="relative">
                   <input
@@ -325,8 +442,12 @@ export function PatternEditor() {
                     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
                   />
                   <div className="flex justify-between mt-1">
-                    <span className="text-[10px] text-muted-foreground">Fast</span>
-                    <span className="text-[10px] text-muted-foreground">Slow</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Fast
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Slow
+                    </span>
                   </div>
                 </div>
               </div>
@@ -342,7 +463,9 @@ export function PatternEditor() {
               <h2 className="font-semibold text-sm">Live Preview</h2>
               <div className="flex items-center gap-1.5 px-2 py-1 bg-background/50 rounded-md border border-border/50">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs text-muted-foreground font-medium">Live</span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Live
+                </span>
               </div>
             </div>
             <div className="p-6 flex justify-center items-center min-h-[160px] bg-gradient-to-br from-primary/5 via-transparent to-transparent">
@@ -350,8 +473,8 @@ export function PatternEditor() {
                 <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
                 <div className="relative bg-background/50 p-4 rounded-2xl border border-border/50 shadow-lg">
                   <MorsePixelGrid
-                    key={`preview-${JSON.stringify(state.frames.map(f => f.pattern)).substring(0, 50)}`}
-                    patterns={state.frames.map(f => f.pattern)}
+                    key={`preview-${JSON.stringify(state.frames.map((f) => f.pattern)).substring(0, 50)}`}
+                    patterns={state.frames.map((f) => f.pattern)}
                     animationPreset="fade"
                     tempo={state.animationSpeed}
                     active={state.isPlaying}
@@ -381,7 +504,7 @@ export function PatternEditor() {
           border-radius: 50%;
           cursor: pointer;
           transition: all 0.2s;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .slider::-webkit-slider-thumb:hover {
           transform: scale(1.15);
@@ -395,7 +518,7 @@ export function PatternEditor() {
           cursor: pointer;
           border: none;
           transition: all 0.2s;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .slider::-moz-range-thumb:hover {
           transform: scale(1.15);
@@ -428,5 +551,5 @@ export function PatternEditor() {
         />
       )}
     </div>
-  );
+  )
 }
