@@ -17,6 +17,10 @@ A modern React component library for animated pixel-based visualizations inspire
 - 🎭 **Animation Engine** - Frame-based system with configurable tempo and iterations
 - 🔧 **Developer Friendly** - Full TypeScript support with comprehensive type definitions
 - 🎪 **Component Variants** - Button, Grid, and Matrix Flow components for different use cases
+- ✏️ **Pattern Editor** - Built-in visual editor with drawing tools, undo/redo, and frame management
+- 📦 **Import/Export** - Share patterns as JSON or generate TypeScript code
+- 👻 **Ghost Overlay** - Visualize previous frames while editing animations
+- ⌨️ **Keyboard Shortcuts** - Efficient editing with keyboard controls (C, F, I, Ctrl+Z/Y)
 
 ## 📦 Installation
 
@@ -58,13 +62,13 @@ import { MorsePixelGrid, MorseButton, MorseMatrixFlow } from 'morse'
 
 ### MorsePixelGrid
 
-The core component for rendering animated pixel grids.
+The core component for rendering animated pixel grids. Now supports 5x5 grids by default with enhanced performance optimizations.
 
 ```tsx
 <MorsePixelGrid
   pattern="custom"           // Pattern type or custom array
   preset="scale"            // Animation preset
-  size={7}                  // Grid size (NxN)
+  size={5}                  // Grid size (NxN) - default 5x5
   pixelSize={12}            // Individual pixel size
   gap={2}                   // Gap between pixels
   tempo={100}               // Animation speed (ms)
@@ -172,22 +176,76 @@ const customPattern = [
 - `linear` - Sequential left-to-right
 - `radial` - Radial expansion
 
+## 🎨 Pattern Editor
 
+The built-in pattern editor provides a comprehensive visual interface for creating and editing morse patterns:
+
+### Features
+
+- **Drawing Tools** - Pencil (toggle), Fill, and Clear tools
+- **Frame Management** - Add, duplicate, and delete frames
+- **Timeline** - Visual timeline with adjustable frame duration
+- **Undo/Redo** - Full history support (Ctrl+Z / Ctrl+Y)
+- **Ghost Overlay** - See previous frame while editing
+- **Import/Export** - Share patterns as JSON or TypeScript code
+- **Pattern Library** - Quick access to preset patterns
+- **Canvas Settings** - Adjustable grid size (3x3 to 9x9) and pixel spacing
+
+### Keyboard Shortcuts
+
+- `C` - Clear canvas
+- `F` - Fill canvas
+- `I` - Invert pattern
+- `Ctrl+Z` - Undo
+- `Ctrl+Y` - Redo
+- `Space` - Play/pause animation
+
+### Using the Editor
+
+```tsx
+import { PatternEditor } from 'morse/components'
+
+// Embed the pattern editor in your app
+<PatternEditor />
+
+// The editor now features:
+// - Enhanced canvas with pixel shifting controls
+// - Frame timeline with duration adjustment
+// - Export modal with JSON and TypeScript code generation
+// - Import functionality for existing patterns
+```
 
 ### Project Structure
 
 ```
 morse/
 ├── app/                    # Next.js app directory
-├── components/             # React components
-│   ├── MorsePixelGrid/    # Core pixel grid component
-│   ├── MorseMatrixFlow/   # Pattern flow component
-│   └── MorseButton/       # Interactive button component
+│   ├── components/        # App-specific components
+│   ├── page.tsx          # Landing page with pattern editor
+│   └── constants.ts      # App configuration
+├── components/            # React components
+│   ├── MorsePixelGrid/   # Core pixel grid component
+│   ├── MorseMatrixFlow/  # Pattern flow component
+│   ├── MorseButton/      # Interactive button component
+│   ├── PatternEditor.tsx # Main pattern editor component
+│   └── editor/           # Editor sub-components
+│       ├── EditorCanvas.tsx      # Drawing canvas
+│       ├── EnhancedEditorCanvas.tsx # Enhanced canvas with tools
+│       ├── FrameTimeline.tsx     # Frame management
+│       ├── ToolPanel.tsx         # Tool selection
+│       ├── DrawingToolPanel.tsx  # Drawing tools UI
+│       ├── ExportModal.tsx       # Export functionality
+│       ├── ImportModal.tsx       # Import functionality
+│       └── PatternLibrary.tsx    # Preset patterns
 ├── lib/                   # Utilities and hooks
-│   ├── patterns/          # Pattern generators and presets
-│   ├── hooks/             # Custom React hooks
-│   └── utils/             # Helper functions
-└── registry/              # Component registry
+│   ├── patterns/         # Pattern generators and presets
+│   ├── hooks/            # Custom React hooks
+│   ├── editor/           # Editor utilities
+│   │   └── tools.ts     # Drawing tool implementations
+│   ├── utils/            # Helper functions
+│   └── types.ts          # TypeScript definitions
+└── public/
+    └── r/                # Pattern registry JSON files
 ```
 
 ## 🤝 Contributing
