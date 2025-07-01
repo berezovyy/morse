@@ -37,6 +37,7 @@ export function EnhancedEditorCanvas({
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [previewPoints, setPreviewPoints] = useState<Point[]>([]);
   const [wrapAround, setWrapAround] = useState(true);
+  const [pencilMode, setPencilMode] = useState<boolean | null>(null); // Track whether pencil is filling or clearing
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const applyPointsToPattern = useCallback((points: Point[], value: boolean) => {
@@ -58,20 +59,30 @@ export function EnhancedEditorCanvas({
     setStartPoint(point);
     setIsDragging(true);
 
-    if (selectedTool === 'pencil' || selectedTool === 'eraser') {
-      applyPointsToPattern([point], getToolValue());
+    if (selectedTool === 'pencil') {
+      // Toggle the cell - if it's active, clear it; if it's empty, fill it
+      const newValue = !pattern[row][col];
+      setPencilMode(newValue); // Remember what mode we're in for dragging
+      applyPointsToPattern([point], newValue);
+    } else if (selectedTool === 'eraser') {
+      applyPointsToPattern([point], false);
     } else if (selectedTool === 'fill') {
       const fillPoints = getFloodFillPoints(pattern, point, gridSize);
       applyPointsToPattern(fillPoints, !pattern[row][col]);
     }
-  }, [pattern, selectedTool, applyPointsToPattern, getToolValue, gridSize]);
+  }, [pattern, selectedTool, applyPointsToPattern, gridSize]);
 
   const handleMouseMove = useCallback((row: number, col: number) => {
     const point = { x: col, y: row };
 
     if (isDragging && startPoint) {
-      if (selectedTool === 'pencil' || selectedTool === 'eraser') {
-        applyPointsToPattern([point], getToolValue());
+      if (selectedTool === 'pencil') {
+        // Use the pencil mode determined on mouse down
+        if (pencilMode !== null) {
+          applyPointsToPattern([point], pencilMode);
+        }
+      } else if (selectedTool === 'eraser') {
+        applyPointsToPattern([point], false);
       } else if (selectedTool === 'line') {
         const points = getLinePoints(startPoint, point);
         setPreviewPoints(points);
@@ -83,7 +94,7 @@ export function EnhancedEditorCanvas({
         setPreviewPoints(points.filter(p => p.x >= 0 && p.x < gridSize && p.y >= 0 && p.y < gridSize));
       }
     }
-  }, [isDragging, startPoint, selectedTool, fillMode, applyPointsToPattern, getToolValue, gridSize]);
+  }, [isDragging, startPoint, selectedTool, fillMode, applyPointsToPattern, pencilMode, gridSize]);
 
   const handleMouseUp = useCallback(() => {
     if (isDragging && startPoint && previewPoints.length > 0) {
@@ -92,6 +103,7 @@ export function EnhancedEditorCanvas({
     setIsDragging(false);
     setStartPoint(null);
     setPreviewPoints([]);
+    setPencilMode(null); // Reset pencil mode
   }, [isDragging, startPoint, previewPoints, applyPointsToPattern, getToolValue]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent, row: number, col: number) => {
