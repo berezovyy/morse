@@ -4,9 +4,13 @@ interface ToolPanelProps {
   onClear: () => void;
   onFill: () => void;
   onInvert: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
-export function ToolPanel({ onClear, onFill, onInvert }: ToolPanelProps) {
+export function ToolPanel({ onClear, onFill, onInvert, onUndo, onRedo, canUndo, canRedo }: ToolPanelProps) {
   const tools = [
     { 
       label: 'Clear', 
@@ -53,7 +57,57 @@ export function ToolPanel({ onClear, onFill, onInvert }: ToolPanelProps) {
         <h3 className="font-semibold text-sm">Tools</h3>
       </div>
       
-      <div className="p-3 grid grid-cols-3 gap-2">
+      <div className="p-3 space-y-3">
+        {/* Undo/Redo buttons */}
+        {(onUndo || onRedo) && (
+          <div className="grid grid-cols-2 gap-2">
+            {onUndo && (
+              <button
+                onClick={onUndo}
+                disabled={!canUndo}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-background/50 border-border/50 hover:bg-accent hover:border-accent disabled:hover:bg-background/50 disabled:hover:border-border/50 group"
+                title="Undo (Ctrl+Z)"
+              >
+                <div className="p-2 rounded-lg bg-muted/50 text-muted-foreground transition-all duration-200 group-hover:bg-accent group-hover:text-accent-foreground group-disabled:hover:bg-muted/50 group-disabled:hover:text-muted-foreground">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M3 8h8a3 3 0 013 3v0a3 3 0 01-3 3H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 8l3-3M3 8l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium">Undo</div>
+                  <kbd className="mt-1 px-1.5 py-0.5 text-[10px] bg-muted/50 rounded font-mono text-muted-foreground">
+                    Ctrl+Z
+                  </kbd>
+                </div>
+              </button>
+            )}
+            {onRedo && (
+              <button
+                onClick={onRedo}
+                disabled={!canRedo}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-background/50 border-border/50 hover:bg-accent hover:border-accent disabled:hover:bg-background/50 disabled:hover:border-border/50 group"
+                title="Redo (Ctrl+Shift+Z)"
+              >
+                <div className="p-2 rounded-lg bg-muted/50 text-muted-foreground transition-all duration-200 group-hover:bg-accent group-hover:text-accent-foreground group-disabled:hover:bg-muted/50 group-disabled:hover:text-muted-foreground">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M15 8H7a3 3 0 00-3 3v0a3 3 0 003 3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 8l-3-3M15 8l-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium">Redo</div>
+                  <kbd className="mt-1 px-1.5 py-0.5 text-[10px] bg-muted/50 rounded font-mono text-muted-foreground">
+                    Ctrl+Y
+                  </kbd>
+                </div>
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Main tools */}
+        <div className="grid grid-cols-3 gap-2">
         {tools.map((tool) => (
           <button
             key={tool.label}
@@ -80,6 +134,7 @@ export function ToolPanel({ onClear, onFill, onInvert }: ToolPanelProps) {
             </div>
           </button>
         ))}
+        </div>
       </div>
       
       <div className="border-t bg-gradient-to-b from-muted/10 to-transparent px-3 py-3">

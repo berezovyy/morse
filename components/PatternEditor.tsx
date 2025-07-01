@@ -5,6 +5,7 @@ import { EditorCanvas } from '@/components/editor/EditorCanvas'
 import { FrameTimeline } from '@/components/editor/FrameTimeline'
 import { ToolPanel } from '@/components/editor/ToolPanel'
 import { ExportModal } from '@/components/editor/ExportModal'
+import { ImportModal } from '@/components/editor/ImportModal'
 import { PatternLibrary } from '@/components/editor/PatternLibrary'
 import { MorsePixelGrid } from '@/components/MorsePixelGrid/MorsePixelGrid'
 import type { Pattern } from '@/lib/types'
@@ -42,8 +43,15 @@ export function PatternEditor() {
   })
 
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
   const [showPatternLibrary, setShowPatternLibrary] = useState(false)
   const [showPreviousFrame, setShowPreviousFrame] = useState(true)
+  
+  // History stack for undo/redo
+  const [history, setHistory] = useState<EditorState[]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const [skipHistoryUpdate, setSkipHistoryUpdate] = useState(true) // Start with true to avoid double-adding initial state
+  const maxHistorySize = 50
 
   const currentPattern =
     state.frames[state.currentFrame]?.pattern || createEmptyPattern(gridSize)
@@ -52,8 +60,67 @@ export function PatternEditor() {
       ? state.frames[state.currentFrame - 1]?.pattern
       : undefined
 
+  // Track state changes and update history
+  useEffect(() => {
+    if (!skipHistoryUpdate) {
+      // Don't add duplicate states
+      if (historyIndex >= 0) {
+        const currentHistoryState = history[historyIndex]
+        if (JSON.stringify(currentHistoryState) === JSON.stringify(state)) {
+          return
+        }
+      }
+      
+      // Add current state to history
+      const newHistory = [...history.slice(0, historyIndex + 1), state]
+      
+      // Trim if exceeds max size
+      if (newHistory.length > maxHistorySize) {
+        setHistory(newHistory.slice(1))
+        setHistoryIndex(newHistory.length - 2)
+      } else {
+        setHistory(newHistory)
+        setHistoryIndex(newHistory.length - 1)
+      }
+    } else {
+      setSkipHistoryUpdate(false)
+    }
+  }, [state]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Custom setState that doesn't track history (for undo/redo)
+  const setStateWithoutHistory = useCallback((newState: EditorState) => {
+    setSkipHistoryUpdate(true)
+    setState(newState)
+  }, [])
+
+  // Custom setState that tracks history
+  const setStateWithHistory = useCallback((updater: EditorState | ((prev: EditorState) => EditorState)) => {
+    setState(updater)
+  }, [])
+
+  // Undo function
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const previousState = history[historyIndex - 1]
+      setStateWithoutHistory(previousState)
+      setHistoryIndex(historyIndex - 1)
+    }
+  }, [history, historyIndex, setStateWithoutHistory])
+
+  // Redo function
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const nextState = history[historyIndex + 1]
+      setStateWithoutHistory(nextState)
+      setHistoryIndex(historyIndex + 1)
+    }
+  }, [history, historyIndex, setStateWithoutHistory])
+
+  const canUndo = historyIndex > 0 && history.length > 1
+  const canRedo = historyIndex >= 0 && historyIndex < history.length - 1
+
   const updatePattern = useCallback((pattern: Pattern) => {
-    setState((prev) => ({
+    setStateWithHistory((prev) => ({
       ...prev,
       frames: prev.frames.map((frame, idx) =>
         idx === prev.currentFrame
@@ -61,10 +128,10 @@ export function PatternEditor() {
           : frame
       ),
     }))
-  }, [])
+  }, [setStateWithHistory])
 
   const addFrame = useCallback(() => {
-    setState((prev) => ({
+    setStateWithHistory((prev) => ({
       ...prev,
       frames: [
         ...prev.frames,
@@ -75,10 +142,10 @@ export function PatternEditor() {
       ],
       currentFrame: prev.frames.length,
     }))
-  }, [gridSize])
+  }, [gridSize, setStateWithHistory])
 
   const removeFrame = useCallback((index: number) => {
-    setState((prev) => {
+    setStateWithHistory((prev) => {
       if (prev.frames.length <= 1) return prev
       const newFrames = prev.frames.filter((_, i) => i !== index)
       return {
@@ -87,10 +154,10 @@ export function PatternEditor() {
         currentFrame: Math.min(prev.currentFrame, newFrames.length - 1),
       }
     })
-  }, [])
+  }, [setStateWithHistory])
 
   const duplicateFrame = useCallback((index: number) => {
-    setState((prev) => {
+    setStateWithHistory((prev) => {
       const frameToDuplicate = prev.frames[index]
       const newFrames = [
         ...prev.frames.slice(0, index + 1),
@@ -106,7 +173,7 @@ export function PatternEditor() {
         currentFrame: index + 1,
       }
     })
-  }, [])
+  }, [setStateWithHistory])
 
   const navigateFrame = useCallback((direction: 'prev' | 'next') => {
     setState((prev) => ({
@@ -133,7 +200,7 @@ export function PatternEditor() {
   }, [])
 
   const setAnimationSpeed = useCallback((speed: number) => {
-    setState((prev) => ({
+    setStateWithHistory((prev) => ({
       ...prev,
       animationSpeed: speed,
       frames: prev.frames.map((frame) => ({
@@ -141,7 +208,7 @@ export function PatternEditor() {
         duration: speed,
       })),
     }))
-  }, [])
+  }, [setStateWithHistory])
 
   const clearPattern = useCallback(() => {
     updatePattern(createEmptyPattern(gridSize))
@@ -160,7 +227,7 @@ export function PatternEditor() {
   }, [currentPattern, updatePattern])
 
   const loadPattern = useCallback((patterns: Pattern[]) => {
-    setState((prev) => ({
+    setStateWithHistory((prev) => ({
       ...prev,
       frames: patterns.map((pattern) => ({
         pattern,
@@ -169,19 +236,48 @@ export function PatternEditor() {
       currentFrame: 0,
     }))
     setShowPatternLibrary(false)
-  }, [])
+  }, [setStateWithHistory])
+
+  const updateFrameDuration = useCallback((index: number, duration: number) => {
+    setStateWithHistory((prev) => ({
+      ...prev,
+      frames: prev.frames.map((frame, idx) =>
+        idx === index
+          ? { ...frame, duration }
+          : frame
+      ),
+    }))
+  }, [setStateWithHistory])
+
+  const importPatterns = useCallback((frames: { pattern: Pattern; duration: number }[]) => {
+    setStateWithHistory({
+      frames,
+      currentFrame: 0,
+      isPlaying: false,
+      animationSpeed: frames[0]?.duration || 500,
+    })
+  }, [setStateWithHistory])
 
   useEffect(() => {
     const savedState = localStorage.getItem('morse-editor-state')
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState)
+        setSkipHistoryUpdate(true)
         setState(parsed)
+        // Initialize history with loaded state
+        setHistory([parsed])
+        setHistoryIndex(0)
       } catch (e) {
         console.error('Failed to load saved state:', e)
       }
+    } else {
+      // Initialize history with current state
+      setHistory([state])
+      setHistoryIndex(0)
+      setSkipHistoryUpdate(false)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const saveTimeout = setTimeout(() => {
@@ -200,8 +296,12 @@ export function PatternEditor() {
       } else if (e.key === 'ArrowRight') {
         navigateFrame('next')
       } else if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z') {
+        if (e.key === 'z' && !e.shiftKey) {
           e.preventDefault()
+          undo()
+        } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+          e.preventDefault()
+          redo()
         }
       } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault()
@@ -217,7 +317,7 @@ export function PatternEditor() {
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [togglePlay, navigateFrame, clearPattern, fillPattern, invertPattern])
+  }, [togglePlay, navigateFrame, clearPattern, fillPattern, invertPattern, undo, redo])
 
   return (
     <div className="relative">
@@ -235,6 +335,12 @@ export function PatternEditor() {
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Browse Patterns
+          </button>
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="px-4 py-2 text-sm font-medium border border-border/50 rounded-md hover:bg-accent transition-colors"
+          >
+            Import
           </button>
           <button
             onClick={() => setShowExportModal(true)}
@@ -318,6 +424,7 @@ export function PatternEditor() {
             onRemoveFrame={removeFrame}
             onDuplicateFrame={duplicateFrame}
             onNavigate={navigateFrame}
+            onFrameDurationChange={updateFrameDuration}
           />
 
           {/* Playback Controls */}
@@ -491,6 +598,10 @@ export function PatternEditor() {
             onClear={clearPattern}
             onFill={fillPattern}
             onInvert={invertPattern}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
           />
         </div>
       </div>
@@ -541,6 +652,13 @@ export function PatternEditor() {
           frames={state.frames}
           gridSize={gridSize}
           onClose={() => setShowExportModal(false)}
+        />
+      )}
+
+      {showImportModal && (
+        <ImportModal
+          onImport={importPatterns}
+          onClose={() => setShowImportModal(false)}
         />
       )}
 
