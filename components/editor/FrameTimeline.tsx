@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { Pattern } from '@/lib/types'
 
 interface EditorFrame {
@@ -17,6 +17,11 @@ interface FrameTimelineProps {
   onDuplicateFrame: (index: number) => void
   onNavigate: (direction: 'prev' | 'next') => void
   onFrameDurationChange?: (index: number, duration: number) => void
+  onReorderFrames?: (frames: EditorFrame[]) => void
+  onCopyFrame?: (index: number) => void
+  onPasteFrame?: (index: number) => void
+  hasCopiedFrame?: boolean
+  gridSize?: number
 }
 
 export function FrameTimeline({
@@ -28,9 +33,18 @@ export function FrameTimeline({
   onDuplicateFrame,
   onNavigate,
   onFrameDurationChange,
+  onReorderFrames,
+  onCopyFrame,
+  onPasteFrame,
+  hasCopiedFrame = false,
+  gridSize = 5,
 }: FrameTimelineProps) {
   const [editingDuration, setEditingDuration] = useState<number | null>(null)
   const [durationValue, setDurationValue] = useState('')
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const dragNodeRef = useRef<HTMLDivElement | null>(null)
+  const dragOverNodeRef = useRef<HTMLDivElement | null>(null)
 
   const startEditingDuration = (index: number) => {
     setEditingDuration(index)
@@ -50,6 +64,64 @@ export function FrameTimeline({
   const cancelEdit = () => {
     setEditingDuration(null)
     setDurationValue('')
+  }
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index)
+    dragNodeRef.current = e.currentTarget
+    e.currentTarget.style.opacity = '0.5'
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.style.opacity = '1'
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    dragNodeRef.current = null
+    dragOverNodeRef.current = null
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    if (draggedIndex === null || draggedIndex === index) return
+    setDragOverIndex(index)
+    dragOverNodeRef.current = e.currentTarget
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (e.currentTarget === dragOverNodeRef.current) {
+      setDragOverIndex(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex || !onReorderFrames) return
+
+    const draggedFrame = frames[draggedIndex]
+    const newFrames = [...frames]
+    
+    // Remove the dragged frame
+    newFrames.splice(draggedIndex, 1)
+    
+    // Insert at new position
+    const insertIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex
+    newFrames.splice(insertIndex, 0, draggedFrame)
+    
+    onReorderFrames(newFrames)
+    
+    // Update current frame index if needed
+    if (currentFrame === draggedIndex) {
+      onFrameSelect(insertIndex)
+    } else if (draggedIndex < currentFrame && insertIndex >= currentFrame) {
+      onFrameSelect(currentFrame - 1)
+    } else if (draggedIndex > currentFrame && insertIndex <= currentFrame) {
+      onFrameSelect(currentFrame + 1)
+    }
   }
 
   return (
@@ -108,7 +180,17 @@ export function FrameTimeline({
             {frames.map((frame, index) => (
               <div
                 key={`frame-${index}-${JSON.stringify(frame.pattern).substring(0, 20)}`}
-                className="relative group flex-shrink-0"
+                className={`relative group flex-shrink-0 ${
+                  dragOverIndex === index ? 'scale-110' : ''
+                } transition-transform duration-200`}
+                draggable={onReorderFrames !== undefined}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
+                onDragEnter={(e) => handleDragEnter(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                style={{ cursor: onReorderFrames ? 'grab' : 'default' }}
               >
                 <button
                   onClick={() => onFrameSelect(index)}
@@ -116,16 +198,26 @@ export function FrameTimeline({
                     index === currentFrame
                       ? 'border-primary shadow-md scale-105'
                       : 'border-border hover:border-primary/50 bg-background/50'
+                  } ${
+                    dragOverIndex === index && draggedIndex !== index
+                      ? 'border-primary/70 bg-primary/10'
+                      : ''
                   }`}
                   aria-label={`Frame ${index + 1}`}
                 >
                   {/* Mini Grid Preview */}
-                  <div className="absolute inset-1.5 grid grid-cols-5 grid-rows-5 gap-[1px]">
+                  <div 
+                    className="absolute inset-1.5 grid gap-[1px]"
+                    style={{
+                      gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+                      gridTemplateRows: `repeat(${gridSize}, 1fr)`,
+                    }}
+                  >
                     {frame.pattern
-                      .slice(0, 5)
+                      .slice(0, gridSize)
                       .map((row, rowIdx) =>
                         row
-                          .slice(0, 5)
+                          .slice(0, gridSize)
                           .map((isActive, colIdx) => (
                             <div
                               key={`${rowIdx}-${colIdx}-${index}`}
@@ -184,7 +276,48 @@ export function FrameTimeline({
                 )}
                 
                 {/* Frame Actions */}
-                <div className="absolute -top-2 -right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                  {/* Copy Button */}
+                  {onCopyFrame && (
+                    <button
+                      onClick={() => onCopyFrame(index)}
+                      className="w-7 h-7 bg-background border border-border/50 rounded-lg flex items-center justify-center hover:bg-accent hover:border-accent transition-all duration-200 shadow-md group/btn"
+                      aria-label={`Copy frame ${index + 1}`}
+                      title="Copy frame (Ctrl+C)"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        className="text-muted-foreground group-hover/btn:text-foreground transition-colors"
+                      >
+                        <rect x="4" y="4" width="8" height="8" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+                        <path d="M8 4V3a1 1 0 00-1-1H3a1 1 0 00-1 1v4a1 1 0 001 1h1" stroke="currentColor" strokeWidth="1.5"/>
+                      </svg>
+                    </button>
+                  )}
+                  {/* Paste Button */}
+                  {onPasteFrame && hasCopiedFrame && (
+                    <button
+                      onClick={() => onPasteFrame(index)}
+                      className="w-7 h-7 bg-background border border-border/50 rounded-lg flex items-center justify-center hover:bg-accent hover:border-accent transition-all duration-200 shadow-md group/btn"
+                      aria-label={`Paste to frame ${index + 1}`}
+                      title="Paste frame (Ctrl+V)"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        className="text-muted-foreground group-hover/btn:text-foreground transition-colors"
+                      >
+                        <rect x="4" y="2" width="6" height="10" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+                        <rect x="2" y="5" width="10" height="1" fill="currentColor"/>
+                        <path d="M6 2h2a1 1 0 011 1v0a1 1 0 01-1 1H6a1 1 0 01-1-1v0a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5"/>
+                      </svg>
+                    </button>
+                  )}
                   {/* Duplicate Button */}
                   <button
                     onClick={() => onDuplicateFrame(index)}
